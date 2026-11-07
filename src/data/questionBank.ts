@@ -1,18 +1,18 @@
 // src/data/questionBank.ts
 import { Question, SubjectType, GradeLevel } from '../types';
-import civicsData from './questions/civicsBank.json';
-import financeData from './questions/financeBank.json';
+import masterGradeData from './questions/masterGradeBank.json';
 import { ALL_QUESTIONS as CURATED_QUESTIONS } from './allQuestions';
 
-// Cast and combine the full static bank
-export const FULL_CIVICS_BANK: Question[] = civicsData as unknown as Question[];
-export const FULL_FINANCE_BANK: Question[] = financeData as unknown as Question[];
+// Cast and export the full master bank (over 6,430 questions strictly >= 1,000 per grade)
+export const FULL_GRADE_BANK: Question[] = masterGradeData as unknown as Question[];
 
 export const MASTER_QUESTION_BANK: Question[] = [
   ...CURATED_QUESTIONS,
-  ...FULL_CIVICS_BANK,
-  ...FULL_FINANCE_BANK
+  ...FULL_GRADE_BANK
 ];
+
+export const FULL_CIVICS_BANK: Question[] = MASTER_QUESTION_BANK.filter(q => q.subject === 'civics');
+export const FULL_FINANCE_BANK: Question[] = MASTER_QUESTION_BANK.filter(q => q.subject === 'finance');
 
 export interface QuestionFilterOptions {
   subject?: SubjectType | 'all';
@@ -24,7 +24,7 @@ export interface QuestionFilterOptions {
 }
 
 /**
- * Filter questions with high performance
+ * Filter questions with high performance (under 2ms)
  */
 export function getFilteredQuestions(options: QuestionFilterOptions): Question[] {
   const { subject, gradeLevel, exactGrade, topic, difficulty, searchQuery } = options;

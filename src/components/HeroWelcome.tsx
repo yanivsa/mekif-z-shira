@@ -288,7 +288,7 @@ export const HeroWelcome: React.FC<HeroWelcomeProps> = ({
             </div>
           </div>
 
-          {/* Card 4: 2,500+ Question Bank */}
+          {/* Card 4: 6,400+ Question Bank */}
           <div 
             onClick={() => onNavigate('bank')}
             className="group bg-gradient-to-br from-indigo-900 to-slate-900 text-white rounded-3xl p-6 border border-indigo-700/50 hover:border-indigo-400 shadow-sm hover:shadow-xl transition-all cursor-pointer flex flex-col justify-between"
@@ -299,14 +299,14 @@ export const HeroWelcome: React.FC<HeroWelcomeProps> = ({
                   <Database className="w-6 h-6" />
                 </div>
                 <span className="text-xs font-black px-2.5 py-1 rounded-full bg-amber-400 text-amber-950">
-                  2,590+ שאלות
+                  6,430+ שאלות
                 </span>
               </div>
               <h3 className="text-xl font-black text-white group-hover:text-indigo-300 transition-colors">
                 בנק השאלות המלא
               </h3>
               <p className="text-slate-300 text-sm mt-2 leading-relaxed">
-                מאגר ענק של אלפי שאלות אתגר מדורגות לחט״ב וחט״ע ברמת קושי עילאית, חיפוש מהיר, מחוונים מפורטים וטיפים של שירה.
+                לפחות 1,000 שאלות לכל כיתה (ז׳ עד י״ב!) מבוססות חומר רשמי ברמת אתגר עילאית, חיפוש מהיר ומחווני בדיקה.
               </p>
             </div>
             <div className="pt-6 mt-4 border-t border-slate-700/80 flex items-center justify-between text-sm font-bold text-indigo-300">

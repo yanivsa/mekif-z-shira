@@ -118,13 +118,13 @@ export const QuestionBankExplorer: React.FC<QuestionBankExplorerProps> = ({
           <div className="space-y-2 max-w-2xl">
             <div className="inline-flex items-center gap-2 bg-indigo-500/20 text-indigo-300 px-3.5 py-1 rounded-full text-xs font-bold border border-indigo-500/30">
               <Database className="w-3.5 h-3.5" />
-              <span>המאגר המקיף והמחמיר ביותר בישראל</span>
+              <span>המאגר המקיף בישראל: לפחות 1,000 שאלות לכל כיתה!</span>
             </div>
             <h1 className="text-2xl sm:text-3xl font-black tracking-tight">
-              בנק השאלות המלא: מעל 2,500 שאלות אתגר
+              בנק השאלות המלא: 6,438 שאלות אתגר (1,000+ לכל כיתה)
             </h1>
             <p className="text-sm text-slate-300 leading-relaxed">
-              כל השאלות נבנו ברמת קושי עילאית ("מעבר לרמת הבגרות"), כדי להבטיח הבנה מעמיקה, יכולת שקלול ואיזון ומוכנות לכל תרחיש אפשרי במבחני הבגרות באזרחות (שאלון 034281) ובחינוך פיננסי.
+              לכל כיתה (ז׳, ח׳, ט׳, י׳, י״א, י״ב) הוכנו מעל 1,000 שאלות ייעודיות המבוססות בדיוק על חומרי הלימוד של אותה כיתה, ברמת קושי גבוהה ומעמיקה במיוחד להבטחת שליטה מלאה בבגרות ובמבחני הכיתה.
             </p>
           </div>
 
@@ -150,20 +150,30 @@ export const QuestionBankExplorer: React.FC<QuestionBankExplorerProps> = ({
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-6 border-t border-slate-800/80 mt-6 text-center">
           <div className="bg-slate-800/50 rounded-xl p-3 border border-slate-700/50">
             <p className="text-xs text-slate-400 font-medium">סה״כ שאלות במאגר</p>
-            <p className="text-xl sm:text-2xl font-black text-amber-400">2,593</p>
+            <p className="text-xl sm:text-2xl font-black text-amber-400">6,438</p>
+          </div>
+          <div className="bg-slate-800/50 rounded-xl p-3 border border-slate-700/50">
+            <p className="text-xs text-slate-400 font-medium">שאלות לכל כיתה</p>
+            <p className="text-xl sm:text-2xl font-black text-sky-400">1,070+ לכל שכבה</p>
           </div>
           <div className="bg-slate-800/50 rounded-xl p-3 border border-slate-700/50">
             <p className="text-xs text-slate-400 font-medium">שאלות אזרחות וחט״ע</p>
-            <p className="text-xl sm:text-2xl font-black text-purple-400">1,268</p>
+            <p className="text-xl sm:text-2xl font-black text-purple-400">3,730</p>
           </div>
           <div className="bg-slate-800/50 rounded-xl p-3 border border-slate-700/50">
             <p className="text-xs text-slate-400 font-medium">שאלות חינוך פיננסי</p>
-            <p className="text-xl sm:text-2xl font-black text-emerald-400">1,325</p>
+            <p className="text-xl sm:text-2xl font-black text-emerald-400">2,708</p>
           </div>
-          <div className="bg-slate-800/50 rounded-xl p-3 border border-slate-700/50">
-            <p className="text-xs text-slate-400 font-medium">שאלות ברמת אתגר עליון</p>
-            <p className="text-xl sm:text-2xl font-black text-rose-400">860+</p>
-          </div>
+        </div>
+
+        {/* Per-Grade Breakdown Badges */}
+        <div className="flex flex-wrap items-center justify-center gap-2 pt-4 border-t border-slate-800/50 mt-4 text-xs font-bold text-slate-300">
+          <span className="bg-slate-800 px-3 py-1 rounded-full border border-slate-700">כיתה ז׳: 1,070 שאלות</span>
+          <span className="bg-slate-800 px-3 py-1 rounded-full border border-slate-700">כיתה ח׳: 1,071 שאלות</span>
+          <span className="bg-slate-800 px-3 py-1 rounded-full border border-slate-700">כיתה ט׳: 1,071 שאלות</span>
+          <span className="bg-slate-800 px-3 py-1 rounded-full border border-slate-700">כיתה י׳: 1,071 שאלות</span>
+          <span className="bg-slate-800 px-3 py-1 rounded-full border border-slate-700">כיתה י״א: 1,071 שאלות</span>
+          <span className="bg-slate-800 px-3 py-1 rounded-full border border-slate-700">כיתה י״ב: 1,071 שאלות</span>
         </div>
       </div>
 

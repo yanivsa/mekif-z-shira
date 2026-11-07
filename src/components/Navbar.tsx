@@ -95,7 +95,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               }`}
             >
               <Database className="w-4 h-4 text-indigo-600" />
-              בנק 2,500+ שאלות
+              בנק 6,000+ שאלות
             </button>
             <button
               onClick={() => setCurrentTab('exam')}
@@ -184,7 +184,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             onClick={() => setCurrentTab('bank')}
             className={`px-2 py-1 rounded text-xs font-bold whitespace-nowrap ${currentTab === 'bank' ? 'text-indigo-700 font-black' : 'text-slate-600'}`}
           >
-            בנק 2,500+
+            בנק 6,000+
           </button>
           <button
             onClick={() => setCurrentTab('exam')}
