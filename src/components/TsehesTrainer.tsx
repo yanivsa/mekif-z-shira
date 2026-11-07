@@ -16,6 +16,7 @@ import {
 import { TSEHES_QUESTIONS } from '../data/tsehesQuestions';
 import { TsehesQuestion } from '../types';
 import { fireSchoolPrideConfetti, fireSmallSuccessConfetti } from '../utils/confetti';
+import { sound } from '../utils/soundEngine';
 
 interface TsehesTrainerProps {
   onAddXP: (amount: number) => void;
@@ -53,7 +54,10 @@ export const TsehesTrainer: React.FC<TsehesTrainerProps> = ({ onAddXP, onTsehesC
     setStep1Selected(idx);
     if (idx === currentQ.step1_tzayen.correctIndex) {
       fireSmallSuccessConfetti();
+      sound.playCorrect(1);
       onAddXP(10);
+    } else {
+      sound.playWrong();
     }
   };
 
@@ -62,7 +66,10 @@ export const TsehesTrainer: React.FC<TsehesTrainerProps> = ({ onAddXP, onTsehesC
     setStep2Selected(idx);
     if (idx === currentQ.step2_hatzeg.correctIndex) {
       fireSmallSuccessConfetti();
+      sound.playCorrect(2);
       onAddXP(15);
+    } else {
+      sound.playWrong();
     }
   };
 
@@ -71,7 +78,10 @@ export const TsehesTrainer: React.FC<TsehesTrainerProps> = ({ onAddXP, onTsehesC
     setStep3Selected(idx);
     if (idx === currentQ.step3_hasber.correctIndex) {
       fireSmallSuccessConfetti();
+      sound.playCorrect(3);
       onAddXP(25);
+    } else {
+      sound.playWrong();
     }
 
     // Trigger full completion if all correct
@@ -81,6 +91,7 @@ export const TsehesTrainer: React.FC<TsehesTrainerProps> = ({ onAddXP, onTsehesC
       idx === currentQ.step3_hasber.correctIndex
     ) {
       fireSchoolPrideConfetti();
+      sound.playFanfare();
       onTsehesCompleted();
     }
   };

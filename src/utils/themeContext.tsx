@@ -24,6 +24,18 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   const [isSoundEnabled, setIsSoundEnabled] = useState<boolean>(() => sound.isEnabled());
 
+  useEffect(() => {
+    const isDark = currentThemeId === 'gaming' || currentThemeId === 'scifi';
+    if (isDark) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+
+    Object.keys(THEMES).forEach((t) => document.documentElement.classList.remove(`theme-${t}`));
+    document.documentElement.classList.add(`theme-${currentThemeId}`);
+  }, [currentThemeId]);
+
   const handleSetTheme = (id: ThemeId) => {
     if (id in THEMES) {
       setCurrentThemeId(id);

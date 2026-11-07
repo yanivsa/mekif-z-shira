@@ -19,6 +19,7 @@ import { ALL_QUESTIONS } from '../data/allQuestions';
 import { FULL_FINANCE_BANK } from '../data/questionBank';
 import { Question } from '../types';
 import { fireSmallSuccessConfetti } from '../utils/confetti';
+import { sound } from '../utils/soundEngine';
 
 interface FinancialHubProps {
   onAddXP: (amount: number) => void;
@@ -81,7 +82,10 @@ export const FinancialHub: React.FC<FinancialHubProps> = ({ onAddXP }) => {
     setIsAnsDone(true);
     if (currentQ && idx === currentQ.correctIndex) {
       fireSmallSuccessConfetti();
+      sound.playCorrect();
       onAddXP(15);
+    } else {
+      sound.playWrong();
     }
   };
 

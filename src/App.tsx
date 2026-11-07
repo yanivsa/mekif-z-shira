@@ -92,6 +92,7 @@ export function AppContent() {
             onOpenGlossary={() => setIsGlossaryOpen(true)}
             onOpenThemeSelector={() => setIsThemeOpen(true)}
             onOpenSpeedDrill={() => setIsSpeedDrillOpen(true)}
+            onAddXP={handleAddXP}
           />
         )}
 

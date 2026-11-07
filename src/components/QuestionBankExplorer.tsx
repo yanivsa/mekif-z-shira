@@ -18,6 +18,7 @@ import {
 import { MASTER_QUESTION_BANK } from '../data/questionBank';
 import { Question, SubjectType } from '../types';
 import { fireSmallSuccessConfetti } from '../utils/confetti';
+import { sound } from '../utils/soundEngine';
 
 interface QuestionBankExplorerProps {
   onAddXP: (amount: number) => void;
@@ -93,7 +94,10 @@ export const QuestionBankExplorer: React.FC<QuestionBankExplorerProps> = ({
 
     if (optionIdx === correctIdx) {
       fireSmallSuccessConfetti();
+      sound.playCorrect();
       onAddXP(15);
+    } else {
+      sound.playWrong();
     }
   };
 

@@ -4,6 +4,7 @@ import { ALL_QUESTIONS } from '../data/allQuestions';
 import { FULL_CIVICS_BANK } from '../data/questionBank';
 import { Question } from '../types';
 import { fireSmallSuccessConfetti } from '../utils/confetti';
+import { sound } from '../utils/soundEngine';
 
 interface CivicsHubProps {
   onAddXP: (amount: number) => void;
@@ -46,7 +47,10 @@ export const CivicsHub: React.FC<CivicsHubProps> = ({ onAddXP, onNavigateToTsehe
 
     if (currentQ && idx === currentQ.correctIndex) {
       fireSmallSuccessConfetti();
+      sound.playCorrect();
       onAddXP(15);
+    } else {
+      sound.playWrong();
     }
   };
 

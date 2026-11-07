@@ -13,11 +13,20 @@ import {
   ExternalLink,
   Database,
   Zap,
-  Palette
+  Palette,
+  CheckCircle2,
+  XCircle,
+  HelpCircle,
+  RotateCcw,
+  ShieldCheck,
+  ChevronRight
 } from 'lucide-react';
 import { SHIRA_DAILY_TIPS, SHIRA_WELCOME_MESSAGES } from '../data/shiraTips';
+import { TEEN_DILEMMAS } from '../data/teenDilemmas';
 import { UserStats } from '../types';
 import { useTheme } from '../utils/themeContext';
+import { sound } from '../utils/soundEngine';
+import { fireSmallSuccessConfetti } from '../utils/confetti';
 
 interface HeroWelcomeProps {
   onNavigate: (tab: string) => void;
@@ -25,6 +34,7 @@ interface HeroWelcomeProps {
   onOpenGlossary: () => void;
   onOpenThemeSelector?: () => void;
   onOpenSpeedDrill?: () => void;
+  onAddXP?: (amount: number) => void;
 }
 
 export const HeroWelcome: React.FC<HeroWelcomeProps> = ({
@@ -32,13 +42,58 @@ export const HeroWelcome: React.FC<HeroWelcomeProps> = ({
   userStats,
   onOpenGlossary,
   onOpenThemeSelector,
-  onOpenSpeedDrill
+  onOpenSpeedDrill,
+  onAddXP
 }) => {
   const { theme } = useTheme();
   const [tipIndex, setTipIndex] = useState(0);
   const currentTip = SHIRA_DAILY_TIPS[tipIndex];
 
+  // Daily Teen Dilemma state
+  const [dilemmaIndex, setDilemmaIndex] = useState(0);
+  const [dilemmaChoice, setDilemmaChoice] = useState<number | null>(null);
+  const [isDilemmaAnswered, setIsDilemmaAnswered] = useState(false);
+  const [answeredDilemmas, setAnsweredDilemmas] = useState<Record<string, boolean>>({});
+
+  const currentDilemma = TEEN_DILEMMAS[dilemmaIndex];
+
+  // Level Progression Calculation
+  const getLevelInfo = (xp: number) => {
+    if (xp < 150) return { level: 1, title: '🥉 טירון אזרחות', nextXp: 150, currentMin: 0 };
+    if (xp < 400) return { level: 2, title: '🥈 אזרח פעיל ומודע', nextXp: 400, currentMin: 150 };
+    if (xp < 800) return { level: 3, title: '🥇 לוחם צה״ס מוסמך', nextXp: 800, currentMin: 400 };
+    if (xp < 1500) return { level: 4, title: '💎 שופט שלום ומגן זכויות', nextXp: 1500, currentMin: 800 };
+    return { level: 5, title: '👑 מאסטר הבגרות ונשיא עליון', nextXp: 2500, currentMin: 1500 };
+  };
+  const levelInfo = getLevelInfo(userStats.xp);
+  const progressPercent = Math.min(100, Math.max(5, ((userStats.xp - levelInfo.currentMin) / (levelInfo.nextXp - levelInfo.currentMin)) * 100));
+
+  const handleSelectDilemma = (idx: number) => {
+    if (isDilemmaAnswered) return;
+    setDilemmaChoice(idx);
+    setIsDilemmaAnswered(true);
+
+    if (idx === currentDilemma.correctIndex) {
+      sound.playCorrect();
+      fireSmallSuccessConfetti();
+      if (!answeredDilemmas[currentDilemma.id]) {
+        onAddXP?.(20);
+        setAnsweredDilemmas(prev => ({ ...prev, [currentDilemma.id]: true }));
+      }
+    } else {
+      sound.playWrong();
+    }
+  };
+
+  const handleNextDilemma = () => {
+    sound.playClick();
+    setDilemmaChoice(null);
+    setIsDilemmaAnswered(false);
+    setDilemmaIndex((prev) => (prev + 1) % TEEN_DILEMMAS.length);
+  };
+
   const nextTip = () => {
+    sound.playClick();
     setTipIndex((prev) => (prev + 1) % SHIRA_DAILY_TIPS.length);
   };
 
@@ -171,6 +226,39 @@ export const HeroWelcome: React.FC<HeroWelcomeProps> = ({
 
       </section>
 
+      {/* Student Rank & Level Progress Bar */}
+      <section className="bg-white rounded-2xl p-4 border border-slate-200 shadow-xs flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div className="flex items-center gap-3 w-full sm:w-auto">
+          <div className="w-10 h-10 rounded-xl bg-purple-100 text-purple-700 dark:bg-purple-900/40 dark:text-purple-300 flex items-center justify-center font-black text-lg">
+            {levelInfo.level}
+          </div>
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="font-extrabold text-sm sm:text-base text-slate-900">{levelInfo.title}</span>
+              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-brand-50 text-brand-700 dark:bg-brand-900/40 dark:text-brand-300 border border-brand-200">
+                דרגה {levelInfo.level}
+              </span>
+            </div>
+            <div className="text-xs text-slate-500 font-medium">
+              {userStats.xp} / {levelInfo.nextXp} XP לדרגה הבאה
+            </div>
+          </div>
+        </div>
+
+        <div className="w-full sm:w-64 space-y-1">
+          <div className="flex justify-between text-[11px] font-semibold text-slate-500">
+            <span>התקדמות לדרגה הבאה</span>
+            <span>{Math.round(progressPercent)}%</span>
+          </div>
+          <div className="h-2.5 w-full bg-slate-100 dark:bg-zinc-800 rounded-full overflow-hidden">
+            <div 
+              className="h-full bg-gradient-to-r from-brand-500 to-purple-600 rounded-full transition-all duration-500"
+              style={{ width: `${progressPercent}%` }}
+            />
+          </div>
+        </div>
+      </section>
+
       {/* Stats Summary Strip for the Student */}
       <section className="grid grid-cols-2 sm:grid-cols-4 gap-4">
         
@@ -214,6 +302,106 @@ export const HeroWelcome: React.FC<HeroWelcomeProps> = ({
           </div>
         </div>
 
+      </section>
+
+      {/* Daily Teen Dilemma Card (Ages 14-17 Relatable Scenarios) */}
+      <section className="bg-gradient-to-br from-amber-500/10 via-purple-500/5 to-sky-500/10 rounded-3xl p-6 sm:p-8 border border-amber-500/20 shadow-md">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-4 border-b border-amber-500/15">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-amber-400 to-orange-500 text-slate-950 flex items-center justify-center text-xl shadow-md">
+              <span>{currentDilemma.badgeIcon}</span>
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-amber-400/20 text-amber-700 dark:text-amber-300 border border-amber-400/30">
+                  {currentDilemma.tag}
+                </span>
+                <span className="text-xs font-semibold text-slate-500">
+                  דילמה {dilemmaIndex + 1} מתוך {TEEN_DILEMMAS.length}
+                </span>
+              </div>
+              <h2 className="text-lg sm:text-xl font-black text-slate-900 mt-1">
+                🔥 דילמת היום לנוער: שירה מאתגרת אתכם!
+              </h2>
+            </div>
+          </div>
+
+          <button
+            onClick={handleNextDilemma}
+            className="text-xs font-bold bg-white dark:bg-zinc-800 hover:bg-slate-50 text-slate-700 dark:text-slate-200 px-3.5 py-2 rounded-xl border border-slate-200 dark:border-zinc-700 flex items-center gap-1.5 transition-all shadow-xs self-end sm:self-auto"
+          >
+            <RotateCcw className="w-3.5 h-3.5" />
+            <span>דילמה אחרת ↻</span>
+          </button>
+        </div>
+
+        <div className="pt-4 space-y-4">
+          <div className="bg-white/80 dark:bg-zinc-900/80 backdrop-blur-xs rounded-2xl p-4 sm:p-5 border border-slate-200/80 dark:border-zinc-800">
+            <p className="text-sm sm:text-base text-slate-800 dark:text-slate-200 leading-relaxed font-medium">
+              {currentDilemma.scenario}
+            </p>
+            <div className="mt-3 pt-3 border-t border-slate-100 dark:border-zinc-800 font-bold text-sm sm:text-base text-brand-700 dark:text-brand-300">
+              ❓ {currentDilemma.question}
+            </div>
+          </div>
+
+          {/* Options Grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {currentDilemma.options.map((opt, oIdx) => {
+              const isSelected = dilemmaChoice === oIdx;
+              const isCorrect = oIdx === currentDilemma.correctIndex;
+
+              let btnStyle = "bg-white dark:bg-zinc-900 border-slate-200 dark:border-zinc-800 text-slate-800 dark:text-slate-200 hover:border-amber-400";
+              if (isDilemmaAnswered) {
+                if (isCorrect) {
+                  btnStyle = "bg-emerald-50 dark:bg-emerald-950/60 border-emerald-500 text-emerald-900 dark:text-emerald-200 font-bold ring-2 ring-emerald-500/30";
+                } else if (isSelected && !isCorrect) {
+                  btnStyle = "bg-rose-50 dark:bg-rose-950/60 border-rose-500 text-rose-900 dark:text-rose-200 line-through opacity-80";
+                } else {
+                  btnStyle = "opacity-50 border-slate-200 dark:border-zinc-800";
+                }
+              }
+
+              return (
+                <button
+                  key={oIdx}
+                  onClick={() => handleSelectDilemma(oIdx)}
+                  disabled={isDilemmaAnswered}
+                  className={`p-3.5 rounded-xl border text-right text-xs sm:text-sm font-medium transition-all flex items-start gap-2.5 ${btnStyle}`}
+                >
+                  <span className="font-bold text-xs mt-0.5 opacity-60">
+                    {String.fromCharCode(1488 + oIdx)}.
+                  </span>
+                  <span className="flex-1 leading-snug">{opt}</span>
+                  {isDilemmaAnswered && isCorrect && (
+                    <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+                  )}
+                  {isDilemmaAnswered && isSelected && !isCorrect && (
+                    <XCircle className="w-4 h-4 text-rose-600 shrink-0 mt-0.5" />
+                  )}
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Shira's Explanation Banner */}
+          {isDilemmaAnswered && (
+            <div className="rounded-2xl p-4 bg-emerald-500/10 dark:bg-emerald-950/30 border border-emerald-500/30 animate-in fade-in slide-in-from-top-2 duration-300 space-y-2">
+              <div className="flex items-center gap-2 text-emerald-700 dark:text-emerald-300 font-bold text-sm">
+                <CheckCircle2 className="w-4 h-4" />
+                <span>
+                  {dilemmaChoice === currentDilemma.correctIndex ? 'בול! תשובה מדויקת! (+20 XP)' : 'הסבר המורה שירה:'}
+                </span>
+              </div>
+              <p className="text-xs sm:text-sm text-slate-700 dark:text-slate-300 leading-relaxed">
+                {currentDilemma.explanation}
+              </p>
+              <div className="bg-white/80 dark:bg-zinc-900/80 rounded-xl p-3 text-xs text-amber-800 dark:text-amber-200 border border-amber-500/20 font-medium">
+                💡 {currentDilemma.shiraTip}
+              </div>
+            </div>
+          )}
+        </div>
       </section>
 
       {/* Main Learning Hubs Cards */}

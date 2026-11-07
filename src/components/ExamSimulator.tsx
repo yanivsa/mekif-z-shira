@@ -14,6 +14,7 @@ import {
 import { Question, SubjectType, ExamResult } from '../types';
 import { MASTER_QUESTION_BANK, getFilteredQuestions } from '../data/questionBank';
 import { fireSchoolPrideConfetti } from '../utils/confetti';
+import { sound } from '../utils/soundEngine';
 
 interface ExamSimulatorProps {
   onAddXP: (amount: number) => void;
@@ -81,6 +82,7 @@ export const ExamSimulator: React.FC<ExamSimulatorProps> = ({
   };
 
   const handleSelectOption = (optionIdx: number) => {
+    sound.playClick();
     setUserAnswers((prev) => ({
       ...prev,
       [currentIdx]: optionIdx
@@ -129,6 +131,9 @@ export const ExamSimulator: React.FC<ExamSimulatorProps> = ({
 
     if (score >= 80) {
       fireSchoolPrideConfetti();
+      sound.playFanfare();
+    } else {
+      sound.playStreak();
     }
   };
 
