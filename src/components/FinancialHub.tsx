@@ -45,6 +45,9 @@ export const FinancialHub: React.FC<FinancialHubProps> = ({ onAddXP }) => {
   const [activeQIndex, setActiveQIndex] = useState(0);
   const [selectedAns, setSelectedAns] = useState<number | null>(null);
   const [isAnsDone, setIsAnsDone] = useState(false);
+  const [attemptsCount, setAttemptsCount] = useState<number>(0);
+  const [wrongAttempts, setWrongAttempts] = useState<number[]>([]);
+  const [showHint, setShowHint] = useState<boolean>(false);
 
   const financialQuestions = FULL_FINANCE_BANK.filter(q => {
     if (selectedGrade !== 'all') {
@@ -79,21 +82,43 @@ export const FinancialHub: React.FC<FinancialHubProps> = ({ onAddXP }) => {
   const totalProfit = futureValue - totalDeposited;
 
   const handleSelectQuiz = (idx: number) => {
-    if (isAnsDone) return;
-    setSelectedAns(idx);
-    setIsAnsDone(true);
+    if (isAnsDone || wrongAttempts.includes(idx)) return;
+
     if (currentQ && idx === currentQ.correctIndex) {
+      setSelectedAns(idx);
+      setIsAnsDone(true);
+      setShowHint(false);
       fireSmallSuccessConfetti();
       sound.playCorrect();
-      onAddXP(15);
+      if (attemptsCount === 0) {
+        onAddXP(15);
+      } else {
+        onAddXP(8);
+      }
     } else {
-      sound.playWrong();
+      if (attemptsCount === 0) {
+        // First mistake: give hint from Shira and let student try again!
+        setAttemptsCount(1);
+        setWrongAttempts([idx]);
+        setShowHint(true);
+        sound.playWrong();
+      } else {
+        // Second mistake: lock question and reveal full answer & explanation
+        setWrongAttempts(prev => [...prev, idx]);
+        setSelectedAns(idx);
+        setIsAnsDone(true);
+        setShowHint(false);
+        sound.playWrong();
+      }
     }
   };
 
   const nextQuizQ = () => {
     setSelectedAns(null);
     setIsAnsDone(false);
+    setAttemptsCount(0);
+    setWrongAttempts([]);
+    setShowHint(false);
     setActiveQIndex((prev) => (prev + 1) % financialQuestions.length);
   };
 
@@ -522,6 +547,9 @@ export const FinancialHub: React.FC<FinancialHubProps> = ({ onAddXP }) => {
                   setActiveQIndex(rand);
                   setIsAnsDone(false);
                   setSelectedAns(null);
+                  setAttemptsCount(0);
+                  setWrongAttempts([]);
+                  setShowHint(false);
                 }}
                 className="text-xs font-bold bg-emerald-50 text-emerald-800 hover:bg-emerald-100 px-3 py-1.5 rounded-xl border border-emerald-200 flex items-center gap-1.5 transition-all shadow-2xs"
               >
@@ -563,24 +591,44 @@ export const FinancialHub: React.FC<FinancialHubProps> = ({ onAddXP }) => {
                 </div>
               )}
 
-              <div className="text-base sm:text-lg font-bold text-slate-900 leading-relaxed">
+              <div className="text-base sm:text-lg font-bold text-slate-900 dark:text-zinc-100 leading-relaxed">
                 {currentQ.question}
               </div>
+
+              {/* Shira's Hint on First Mistake */}
+              {showHint && !isAnsDone && (
+                <div className="bg-amber-50 dark:bg-amber-950/40 border-2 border-amber-300 dark:border-amber-700/60 rounded-2xl p-4 sm:p-5 text-amber-950 dark:text-amber-200 space-y-2 animate-in fade-in slide-in-from-top-2 duration-300 shadow-md">
+                  <div className="flex items-center gap-2 font-black text-sm text-amber-800 dark:text-amber-300">
+                    <span className="text-lg">💡</span>
+                    <span>לא נורא! הנה רמז משירה – קיראו ונסו שוב:</span>
+                  </div>
+                  <p className="text-xs sm:text-sm font-medium leading-relaxed bg-white/80 dark:bg-zinc-900/80 p-3 rounded-xl border border-amber-200 dark:border-amber-800/40">
+                    {currentQ.shiraTip || 'שימו לב לחוקי העבודה העדכניים ולזכויות המפורטות בטבלת השכר.'}
+                  </p>
+                  <div className="text-xs font-bold text-amber-700 dark:text-amber-400">
+                    🎯 התשובה שבחרתם אינה נכונה. ביחרו תשובה אחרת מבין האפשרויות הנותרות!
+                  </div>
+                </div>
+              )}
 
               <div className="space-y-2.5 pt-1">
                 {currentQ.options.map((opt, idx) => {
                   const isSelected = selectedAns === idx;
                   const isCorrect = idx === currentQ.correctIndex;
-                  let style = "border-slate-200 hover:border-emerald-500 hover:bg-slate-50 text-slate-800";
-                  if (isAnsDone) {
+                  const isWrongAttempt = wrongAttempts.includes(idx);
+
+                  let style = "border-slate-200 dark:border-zinc-800 hover:border-emerald-500 hover:bg-slate-50 dark:hover:bg-zinc-800 text-slate-800 dark:text-zinc-200";
+                  if (isWrongAttempt && !isAnsDone) {
+                    style = "border-rose-300 dark:border-rose-900/60 bg-rose-50/70 dark:bg-rose-950/40 text-rose-800 dark:text-rose-300 line-through opacity-60 cursor-not-allowed";
+                  } else if (isAnsDone) {
                     if (isCorrect) style = "bg-emerald-500 text-white font-bold border-emerald-500";
                     else if (isSelected) style = "bg-rose-500 text-white border-rose-500";
-                    else style = "opacity-50 border-slate-200";
+                    else style = "opacity-50 border-slate-200 dark:border-zinc-800";
                   }
                   return (
                     <button
                       key={idx}
-                      disabled={isAnsDone}
+                      disabled={isAnsDone || isWrongAttempt}
                       onClick={() => handleSelectQuiz(idx)}
                       className={`w-full p-4 rounded-2xl border text-right text-xs sm:text-sm leading-relaxed transition-all ${style}`}
                     >

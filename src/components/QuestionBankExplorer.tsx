@@ -40,6 +40,8 @@ export const QuestionBankExplorer: React.FC<QuestionBankExplorerProps> = ({
   // Selected answers state: questionId -> optionIndex
   const [userAnswers, setUserAnswers] = useState<Record<string, number>>({});
   const [revealedAnswers, setRevealedAnswers] = useState<Record<string, boolean>>({});
+  const [wrongAttemptsByQ, setWrongAttemptsByQ] = useState<Record<string, number[]>>({});
+  const [hintsByQ, setHintsByQ] = useState<Record<string, boolean>>({});
 
   // Filter questions
   const filteredQuestions = useMemo(() => {
@@ -88,16 +90,34 @@ export const QuestionBankExplorer: React.FC<QuestionBankExplorerProps> = ({
 
   const handleSelectOption = (questionId: string, optionIdx: number, correctIdx: number) => {
     if (userAnswers[questionId] !== undefined) return;
-
-    setUserAnswers(prev => ({ ...prev, [questionId]: optionIdx }));
-    setRevealedAnswers(prev => ({ ...prev, [questionId]: true }));
+    const currentWrongs = wrongAttemptsByQ[questionId] || [];
+    if (currentWrongs.includes(optionIdx)) return;
 
     if (optionIdx === correctIdx) {
+      setUserAnswers(prev => ({ ...prev, [questionId]: optionIdx }));
+      setRevealedAnswers(prev => ({ ...prev, [questionId]: true }));
+      setHintsByQ(prev => ({ ...prev, [questionId]: false }));
       fireSmallSuccessConfetti();
       sound.playCorrect();
-      onAddXP(15);
+      if (currentWrongs.length > 0) {
+        onAddXP(8);
+      } else {
+        onAddXP(15);
+      }
     } else {
-      sound.playWrong();
+      if (currentWrongs.length === 0) {
+        // First mistake: give hint from Shira and let student try again!
+        setWrongAttemptsByQ(prev => ({ ...prev, [questionId]: [optionIdx] }));
+        setHintsByQ(prev => ({ ...prev, [questionId]: true }));
+        sound.playWrong();
+      } else {
+        // Second mistake: lock and reveal answer
+        setWrongAttemptsByQ(prev => ({ ...prev, [questionId]: [...currentWrongs, optionIdx] }));
+        setUserAnswers(prev => ({ ...prev, [questionId]: optionIdx }));
+        setRevealedAnswers(prev => ({ ...prev, [questionId]: true }));
+        setHintsByQ(prev => ({ ...prev, [questionId]: false }));
+        sound.playWrong();
+      }
     }
   };
 
@@ -332,33 +352,52 @@ export const QuestionBankExplorer: React.FC<QuestionBankExplorerProps> = ({
               )}
 
               {/* Question Text */}
-              <h3 className="font-bold text-base sm:text-lg text-slate-900 leading-snug">
+              <h3 className="font-bold text-base sm:text-lg text-slate-900 dark:text-zinc-100 leading-snug">
                 {q.question}
               </h3>
+
+              {/* Shira's Hint on First Mistake */}
+              {hintsByQ[q.id] && userChoice === undefined && (
+                <div className="bg-amber-50 dark:bg-amber-950/40 border-2 border-amber-300 dark:border-amber-700/60 rounded-2xl p-3.5 text-amber-950 dark:text-amber-200 space-y-1.5 animate-in fade-in slide-in-from-top-2 duration-300 shadow-md">
+                  <div className="flex items-center gap-2 font-black text-xs text-amber-800 dark:text-amber-300">
+                    <span className="text-sm">💡</span>
+                    <span>לא נורא! רמז משירה – קיראו ונסו שוב:</span>
+                  </div>
+                  <p className="text-xs font-medium leading-relaxed bg-white/80 dark:bg-zinc-900/80 p-2.5 rounded-xl border border-amber-200 dark:border-amber-800/40">
+                    {q.shiraTip || 'היזכרו במושג המרכזי וקיראו שוב את הניסוח בשאלה.'}
+                  </p>
+                  <div className="text-[11px] font-bold text-amber-700 dark:text-amber-400">
+                    🎯 התשובה שבחרתם אינה נכונה. ביחרו תשובה אחרת מבין האפשרויות הנותרות!
+                  </div>
+                </div>
+              )}
 
               {/* Interactive Options */}
               <div className="grid grid-cols-1 gap-2 pt-1">
                 {q.options.map((option, optIdx) => {
-                  let optStyle = "bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100";
+                  const isWrongAttempt = (wrongAttemptsByQ[q.id] || []).includes(optIdx);
+                  let optStyle = "bg-slate-50 dark:bg-zinc-800/60 border-slate-200 dark:border-zinc-700 text-slate-700 dark:text-zinc-200 hover:bg-slate-100 dark:hover:bg-zinc-800";
                   
-                  if (userChoice !== undefined) {
+                  if (isWrongAttempt && userChoice === undefined) {
+                    optStyle = "bg-rose-50/70 dark:bg-rose-950/40 border-rose-300 dark:border-rose-900/60 text-rose-800 dark:text-rose-300 line-through opacity-60 cursor-not-allowed";
+                  } else if (userChoice !== undefined) {
                     if (optIdx === q.correctIndex) {
-                      optStyle = "bg-emerald-50 border-emerald-500 text-emerald-900 font-bold";
+                      optStyle = "bg-emerald-50 dark:bg-emerald-950/60 border-emerald-500 text-emerald-900 dark:text-emerald-100 font-bold";
                     } else if (userChoice === optIdx) {
-                      optStyle = "bg-rose-50 border-rose-500 text-rose-900 line-through";
+                      optStyle = "bg-rose-50 dark:bg-rose-950/60 border-rose-500 text-rose-900 dark:text-rose-100 line-through";
                     } else {
-                      optStyle = "bg-slate-50 border-slate-200 text-slate-400 opacity-60";
+                      optStyle = "bg-slate-50 dark:bg-zinc-800/40 border-slate-200 dark:border-zinc-800 text-slate-400 opacity-60";
                     }
                   }
 
                   return (
                     <button
                       key={optIdx}
-                      disabled={userChoice !== undefined}
+                      disabled={userChoice !== undefined || isWrongAttempt}
                       onClick={() => handleSelectOption(q.id, optIdx, q.correctIndex)}
                       className={`w-full text-right p-3.5 rounded-xl border text-xs sm:text-sm transition-all flex items-start gap-3 ${optStyle}`}
                     >
-                      <span className="w-5 h-5 rounded-full border border-slate-300 flex items-center justify-center text-xs font-bold shrink-0 mt-0.5">
+                      <span className="w-5 h-5 rounded-full border border-slate-300 dark:border-zinc-700 flex items-center justify-center text-xs font-bold shrink-0 mt-0.5">
                         {['א', 'ב', 'ג', 'ד'][optIdx]}
                       </span>
                       <span className="flex-1">{option}</span>

@@ -31,6 +31,12 @@ export const TsehesTrainer: React.FC<TsehesTrainerProps> = ({ onAddXP, onTsehesC
   const [step1Selected, setStep1Selected] = useState<number | null>(null);
   const [step2Selected, setStep2Selected] = useState<number | null>(null);
   const [step3Selected, setStep3Selected] = useState<number | null>(null);
+  const [step1Wrongs, setStep1Wrongs] = useState<number[]>([]);
+  const [step2Wrongs, setStep2Wrongs] = useState<number[]>([]);
+  const [step3Wrongs, setStep3Wrongs] = useState<number[]>([]);
+  const [step1Hint, setStep1Hint] = useState<boolean>(false);
+  const [step2Hint, setStep2Hint] = useState<boolean>(false);
+  const [step3Hint, setStep3Hint] = useState<boolean>(false);
 
   // Freestyle text state
   const [freeTextAnswer, setFreeTextAnswer] = useState('');
@@ -43,48 +49,81 @@ export const TsehesTrainer: React.FC<TsehesTrainerProps> = ({ onAddXP, onTsehesC
 
   // Calculate score in interactive mode
   let totalScore = 0;
-  if (step1Selected === currentQ.step1_tzayen.correctIndex) totalScore += currentQ.step1_tzayen.points;
-  if (step2Selected === currentQ.step2_hatzeg.correctIndex) totalScore += currentQ.step2_hatzeg.points;
-  if (step3Selected === currentQ.step3_hasber.correctIndex) totalScore += currentQ.step3_hasber.points;
+  if (step1Selected === currentQ.step1_tzayen.correctIndex) totalScore += (step1Wrongs.length === 0 ? currentQ.step1_tzayen.points : 1);
+  if (step2Selected === currentQ.step2_hatzeg.correctIndex) totalScore += (step2Wrongs.length === 0 ? currentQ.step2_hatzeg.points : 2);
+  if (step3Selected === currentQ.step3_hasber.correctIndex) totalScore += (step3Wrongs.length === 0 ? currentQ.step3_hasber.points : 3);
 
   const isFinishedInteractive = step1Selected !== null && step2Selected !== null && step3Selected !== null;
 
   const handleStep1 = (idx: number) => {
-    if (step1Selected !== null) return;
-    setStep1Selected(idx);
+    if (step1Selected !== null || step1Wrongs.includes(idx)) return;
     if (idx === currentQ.step1_tzayen.correctIndex) {
+      setStep1Selected(idx);
+      setStep1Hint(false);
       fireSmallSuccessConfetti();
       sound.playCorrect(1);
-      onAddXP(10);
+      const xp = step1Wrongs.length === 0 ? 10 : 5;
+      onAddXP(xp);
     } else {
-      sound.playWrong();
+      if (step1Wrongs.length === 0) {
+        setStep1Wrongs([idx]);
+        setStep1Hint(true);
+        sound.playWrong();
+      } else {
+        setStep1Wrongs(prev => [...prev, idx]);
+        setStep1Selected(idx);
+        setStep1Hint(false);
+        sound.playWrong();
+      }
     }
   };
 
   const handleStep2 = (idx: number) => {
-    if (step2Selected !== null) return;
-    setStep2Selected(idx);
+    if (step2Selected !== null || step2Wrongs.includes(idx)) return;
     if (idx === currentQ.step2_hatzeg.correctIndex) {
+      setStep2Selected(idx);
+      setStep2Hint(false);
       fireSmallSuccessConfetti();
       sound.playCorrect(2);
-      onAddXP(15);
+      const xp = step2Wrongs.length === 0 ? 15 : 8;
+      onAddXP(xp);
     } else {
-      sound.playWrong();
+      if (step2Wrongs.length === 0) {
+        setStep2Wrongs([idx]);
+        setStep2Hint(true);
+        sound.playWrong();
+      } else {
+        setStep2Wrongs(prev => [...prev, idx]);
+        setStep2Selected(idx);
+        setStep2Hint(false);
+        sound.playWrong();
+      }
     }
   };
 
   const handleStep3 = (idx: number) => {
-    if (step3Selected !== null) return;
-    setStep3Selected(idx);
+    if (step3Selected !== null || step3Wrongs.includes(idx)) return;
     if (idx === currentQ.step3_hasber.correctIndex) {
+      setStep3Selected(idx);
+      setStep3Hint(false);
       fireSmallSuccessConfetti();
       sound.playCorrect(3);
-      onAddXP(25);
+      const xp = step3Wrongs.length === 0 ? 25 : 12;
+      onAddXP(xp);
     } else {
-      sound.playWrong();
+      if (step3Wrongs.length === 0) {
+        setStep3Wrongs([idx]);
+        setStep3Hint(true);
+        sound.playWrong();
+      } else {
+        setStep3Wrongs(prev => [...prev, idx]);
+        setStep3Selected(idx);
+        setStep3Hint(false);
+        sound.playWrong();
+      }
     }
 
-    // Trigger full completion if all correct
+    // Trigger full completion if all steps finished
     if (
       step1Selected === currentQ.step1_tzayen.correctIndex &&
       step2Selected === currentQ.step2_hatzeg.correctIndex &&
@@ -100,6 +139,12 @@ export const TsehesTrainer: React.FC<TsehesTrainerProps> = ({ onAddXP, onTsehesC
     setStep1Selected(null);
     setStep2Selected(null);
     setStep3Selected(null);
+    setStep1Wrongs([]);
+    setStep2Wrongs([]);
+    setStep3Wrongs([]);
+    setStep1Hint(false);
+    setStep2Hint(false);
+    setStep3Hint(false);
   };
 
   const nextQuestion = () => {
@@ -294,12 +339,26 @@ export const TsehesTrainer: React.FC<TsehesTrainerProps> = ({ onAddXP, onTsehesC
                 {currentQ.step1_tzayen.prompt}
               </div>
 
+              {/* Step 1 Hint on First Mistake */}
+              {step1Hint && step1Selected === null && (
+                <div className="mb-3 bg-amber-50 dark:bg-amber-950/40 border border-amber-300 dark:border-amber-700/60 p-3 rounded-xl text-xs text-amber-950 dark:text-amber-200 animate-in fade-in space-y-1">
+                  <div className="font-bold flex items-center gap-1.5 text-amber-800 dark:text-amber-300">
+                    <span>💡</span>
+                    <span>רמז משירה לשלב ציין:</span>
+                  </div>
+                  <p>קיראו שוב את המשפט המרכזי באירוע. מהו המושג או הזכות העיקרית שעליה מתבססת הפעולה? נסו שוב לבחור!</p>
+                </div>
+              )}
+
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                 {currentQ.step1_tzayen.options.map((opt, idx) => {
                   const isSelected = step1Selected === idx;
                   const isCorrect = idx === currentQ.step1_tzayen.correctIndex;
+                  const isWrong = step1Wrongs.includes(idx);
                   let style = "border-slate-200 hover:bg-slate-50 text-slate-800";
-                  if (step1Selected !== null) {
+                  if (isWrong && step1Selected === null) {
+                    style = "border-rose-300 bg-rose-50 text-rose-800 line-through opacity-60 cursor-not-allowed";
+                  } else if (step1Selected !== null) {
                     if (isCorrect) style = "bg-emerald-500 text-white font-bold border-emerald-500";
                     else if (isSelected) style = "bg-rose-500 text-white border-rose-500";
                     else style = "opacity-50 border-slate-200";
@@ -307,7 +366,7 @@ export const TsehesTrainer: React.FC<TsehesTrainerProps> = ({ onAddXP, onTsehesC
                   return (
                     <button
                       key={idx}
-                      disabled={step1Selected !== null}
+                      disabled={step1Selected !== null || isWrong}
                       onClick={() => handleStep1(idx)}
                       className={`p-3 rounded-xl border text-right text-xs sm:text-sm transition-all ${style}`}
                     >
@@ -350,12 +409,26 @@ export const TsehesTrainer: React.FC<TsehesTrainerProps> = ({ onAddXP, onTsehesC
                   {currentQ.step2_hatzeg.prompt}
                 </div>
 
+                {/* Step 2 Hint on First Mistake */}
+                {step2Hint && step2Selected === null && (
+                  <div className="mb-3 bg-amber-50 dark:bg-amber-950/40 border border-amber-300 dark:border-amber-700/60 p-3 rounded-xl text-xs text-amber-950 dark:text-amber-200 animate-in fade-in space-y-1">
+                    <div className="font-bold flex items-center gap-1.5 text-amber-800 dark:text-amber-300">
+                      <span>💡</span>
+                      <span>רמז משירה לשלב הצג:</span>
+                    </div>
+                    <p>היזהרו מהגדרות חלקיות או מהגדרות שמבלבלות בין מושגים קרובים. בחרו את ההגדרה המלאה ביותר מתוך מחוון המפמ״ר! נסו שוב!</p>
+                  </div>
+                )}
+
                 <div className="space-y-2.5">
                   {currentQ.step2_hatzeg.options.map((opt, idx) => {
                     const isSelected = step2Selected === idx;
                     const isCorrect = idx === currentQ.step2_hatzeg.correctIndex;
+                    const isWrong = step2Wrongs.includes(idx);
                     let style = "border-slate-200 hover:bg-slate-50 text-slate-800";
-                    if (step2Selected !== null) {
+                    if (isWrong && step2Selected === null) {
+                      style = "border-rose-300 bg-rose-50 text-rose-800 line-through opacity-60 cursor-not-allowed";
+                    } else if (step2Selected !== null) {
                       if (isCorrect) style = "bg-emerald-500 text-white font-bold border-emerald-500";
                       else if (isSelected) style = "bg-rose-500 text-white border-rose-500";
                       else style = "opacity-50 border-slate-200";
@@ -363,7 +436,7 @@ export const TsehesTrainer: React.FC<TsehesTrainerProps> = ({ onAddXP, onTsehesC
                     return (
                       <button
                         key={idx}
-                        disabled={step2Selected !== null}
+                        disabled={step2Selected !== null || isWrong}
                         onClick={() => handleStep2(idx)}
                         className={`w-full p-3.5 rounded-xl border text-right text-xs sm:text-sm leading-relaxed transition-all ${style}`}
                       >
@@ -407,12 +480,26 @@ export const TsehesTrainer: React.FC<TsehesTrainerProps> = ({ onAddXP, onTsehesC
                   {currentQ.step3_hasber.prompt}
                 </div>
 
+                {/* Step 3 Hint on First Mistake */}
+                {step3Hint && step3Selected === null && (
+                  <div className="mb-3 bg-amber-50 dark:bg-amber-950/40 border border-amber-300 dark:border-amber-700/60 p-3 rounded-xl text-xs text-amber-950 dark:text-amber-200 animate-in fade-in space-y-1">
+                    <div className="font-bold flex items-center gap-1.5 text-amber-800 dark:text-amber-300">
+                      <span>💡</span>
+                      <span>רמז משירה לשלב הסבר:</span>
+                    </div>
+                    <p>תשובת 100 בהסבר דורשת גם את הציטוט המדויק מן הקטע וגם את ההסבר שמקשר בין המעשה לבין ההגדרה. נסו שוב!</p>
+                  </div>
+                )}
+
                 <div className="space-y-2.5">
                   {currentQ.step3_hasber.options.map((opt, idx) => {
                     const isSelected = step3Selected === idx;
                     const isCorrect = idx === currentQ.step3_hasber.correctIndex;
+                    const isWrong = step3Wrongs.includes(idx);
                     let style = "border-slate-200 hover:bg-slate-50 text-slate-800";
-                    if (step3Selected !== null) {
+                    if (isWrong && step3Selected === null) {
+                      style = "border-rose-300 bg-rose-50 text-rose-800 line-through opacity-60 cursor-not-allowed";
+                    } else if (step3Selected !== null) {
                       if (isCorrect) style = "bg-emerald-500 text-white font-bold border-emerald-500";
                       else if (isSelected) style = "bg-rose-500 text-white border-rose-500";
                       else style = "opacity-50 border-slate-200";
@@ -420,7 +507,7 @@ export const TsehesTrainer: React.FC<TsehesTrainerProps> = ({ onAddXP, onTsehesC
                     return (
                       <button
                         key={idx}
-                        disabled={step3Selected !== null}
+                        disabled={step3Selected !== null || isWrong}
                         onClick={() => handleStep3(idx)}
                         className={`w-full p-3.5 rounded-xl border text-right text-xs sm:text-sm leading-relaxed transition-all ${style}`}
                       >

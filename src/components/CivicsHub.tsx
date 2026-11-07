@@ -19,6 +19,9 @@ export const CivicsHub: React.FC<CivicsHubProps> = ({ onAddXP, onNavigateToTsehe
   const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
   const [isAnswered, setIsAnswered] = useState<boolean>(false);
   const [showExplanation, setShowExplanation] = useState<boolean>(false);
+  const [attemptsCount, setAttemptsCount] = useState<number>(0);
+  const [wrongAttempts, setWrongAttempts] = useState<number[]>([]);
+  const [showHint, setShowHint] = useState<boolean>(false);
 
   // Filter civics questions
   const civicsQuestions = FULL_CIVICS_BANK.filter((q) => {
@@ -38,17 +41,36 @@ export const CivicsHub: React.FC<CivicsHubProps> = ({ onAddXP, onNavigateToTsehe
   const topics = Array.from(new Set(FULL_CIVICS_BANK.map(q => q.topic)));
 
   const handleSelectOption = (idx: number) => {
-    if (isAnswered) return;
-    setSelectedAnswer(idx);
-    setIsAnswered(true);
-    setShowExplanation(true);
+    if (isAnswered || wrongAttempts.includes(idx)) return;
 
     if (currentQ && idx === currentQ.correctIndex) {
+      setSelectedAnswer(idx);
+      setIsAnswered(true);
+      setShowExplanation(true);
+      setShowHint(false);
       fireSmallSuccessConfetti();
       sound.playCorrect();
-      onAddXP(15);
+      if (attemptsCount === 0) {
+        onAddXP(15);
+      } else {
+        onAddXP(8);
+      }
     } else {
-      sound.playWrong();
+      if (attemptsCount === 0) {
+        // First mistake: give hint from Shira and let student try again!
+        setAttemptsCount(1);
+        setWrongAttempts([idx]);
+        setShowHint(true);
+        sound.playWrong();
+      } else {
+        // Second mistake: lock question and reveal full answer & explanation
+        setWrongAttempts(prev => [...prev, idx]);
+        setSelectedAnswer(idx);
+        setIsAnswered(true);
+        setShowExplanation(true);
+        setShowHint(false);
+        sound.playWrong();
+      }
     }
   };
 
@@ -56,6 +78,9 @@ export const CivicsHub: React.FC<CivicsHubProps> = ({ onAddXP, onNavigateToTsehe
     setSelectedAnswer(null);
     setIsAnswered(false);
     setShowExplanation(false);
+    setAttemptsCount(0);
+    setWrongAttempts([]);
+    setShowHint(false);
     setActiveQuestionIndex((prev) => (prev + 1) % civicsQuestions.length);
   };
 
@@ -63,6 +88,9 @@ export const CivicsHub: React.FC<CivicsHubProps> = ({ onAddXP, onNavigateToTsehe
     setSelectedAnswer(null);
     setIsAnswered(false);
     setShowExplanation(false);
+    setAttemptsCount(0);
+    setWrongAttempts([]);
+    setShowHint(false);
     const rand = Math.floor(Math.random() * civicsQuestions.length);
     setActiveQuestionIndex(rand);
   };
@@ -218,35 +246,65 @@ export const CivicsHub: React.FC<CivicsHubProps> = ({ onAddXP, onNavigateToTsehe
             </div>
           </div>
 
+          {/* Scenario Background (If present) */}
+          {currentQ.scenario && (
+            <div className="bg-purple-50/70 dark:bg-purple-950/40 border-r-4 border-civics p-4 rounded-2xl text-xs sm:text-sm text-slate-800 dark:text-zinc-200 leading-relaxed space-y-1">
+              <div className="flex items-center gap-1.5 font-bold text-civics dark:text-purple-300">
+                <BookOpen className="w-4 h-4" />
+                <span>אירוע / קטע לעיון ולניתוח:</span>
+              </div>
+              <p className="font-normal">{currentQ.scenario}</p>
+            </div>
+          )}
+
           {/* Question Text */}
           <div className="space-y-3">
-            <h2 className="text-lg sm:text-xl font-bold text-slate-900 leading-relaxed">
+            <h2 className="text-lg sm:text-xl font-bold text-slate-900 dark:text-zinc-100 leading-relaxed">
               {currentQ.question}
             </h2>
           </div>
+
+          {/* Teacher Shira's Hint on First Mistake */}
+          {showHint && !isAnswered && (
+            <div className="bg-amber-50 dark:bg-amber-950/40 border-2 border-amber-300 dark:border-amber-700/60 rounded-2xl p-4 sm:p-5 text-amber-950 dark:text-amber-200 space-y-2 animate-in fade-in slide-in-from-top-2 duration-300 shadow-md">
+              <div className="flex items-center gap-2 font-black text-sm text-amber-800 dark:text-amber-300">
+                <span className="text-lg">💡</span>
+                <span>לא נורא! הנה רמז משירה – קיראו ונסו שוב:</span>
+              </div>
+              <p className="text-xs sm:text-sm font-medium leading-relaxed bg-white/80 dark:bg-zinc-900/80 p-3 rounded-xl border border-amber-200 dark:border-amber-800/40">
+                {currentQ.shiraTip || 'היזכרו בהגדרה הרשמית של המושג ושימו לב לפרטים המדויקים המופיעים באירוע.'}
+              </p>
+              <div className="text-xs font-bold text-amber-700 dark:text-amber-400">
+                🎯 התשובה שבחרתם אינה נכונה. ביחרו תשובה אחרת מבין האפשרויות הנותרות!
+              </div>
+            </div>
+          )}
 
           {/* Options */}
           <div className="space-y-3 pt-2">
             {currentQ.options.map((option, idx) => {
               const isSelected = selectedAnswer === idx;
               const isCorrect = idx === currentQ.correctIndex;
+              const isWrongAttempt = wrongAttempts.includes(idx);
 
-              let btnStyle = "border-slate-200 hover:border-civics hover:bg-slate-50 text-slate-800";
+              let btnStyle = "border-slate-200 dark:border-zinc-800 hover:border-civics hover:bg-slate-50 dark:hover:bg-zinc-800/60 text-slate-800 dark:text-zinc-200";
               
-              if (isAnswered) {
+              if (isWrongAttempt && !isAnswered) {
+                btnStyle = "border-rose-300 dark:border-rose-900/60 bg-rose-50/70 dark:bg-rose-950/40 text-rose-800 dark:text-rose-300 line-through opacity-60 cursor-not-allowed";
+              } else if (isAnswered) {
                 if (isCorrect) {
-                  btnStyle = "border-emerald-500 bg-emerald-50 text-emerald-950 font-bold shadow-sm";
+                  btnStyle = "border-emerald-500 bg-emerald-50 dark:bg-emerald-950/60 text-emerald-950 dark:text-emerald-100 font-bold shadow-sm";
                 } else if (isSelected) {
-                  btnStyle = "border-rose-500 bg-rose-50 text-rose-950";
+                  btnStyle = "border-rose-500 bg-rose-50 dark:bg-rose-950/60 text-rose-950 dark:text-rose-100";
                 } else {
-                  btnStyle = "border-slate-200 text-slate-400 opacity-60";
+                  btnStyle = "border-slate-200 dark:border-zinc-800 text-slate-400 opacity-60";
                 }
               }
 
               return (
                 <button
                   key={idx}
-                  disabled={isAnswered}
+                  disabled={isAnswered || isWrongAttempt}
                   onClick={() => handleSelectOption(idx)}
                   className={`w-full p-4 rounded-2xl border text-right transition-all flex items-start gap-3 text-sm sm:text-base ${btnStyle}`}
                 >
@@ -255,7 +313,9 @@ export const CivicsHub: React.FC<CivicsHubProps> = ({ onAddXP, onNavigateToTsehe
                       ? 'bg-emerald-500 text-white' 
                       : isAnswered && isSelected 
                       ? 'bg-rose-500 text-white'
-                      : 'bg-slate-100 text-slate-700'
+                      : isWrongAttempt
+                      ? 'bg-rose-200 dark:bg-rose-900 text-rose-800'
+                      : 'bg-slate-100 dark:bg-zinc-800 text-slate-700 dark:text-zinc-300'
                   }`}>
                     {idx + 1}
                   </span>

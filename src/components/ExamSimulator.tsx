@@ -392,12 +392,25 @@ export const ExamSimulator: React.FC<ExamSimulatorProps> = ({
           {/* Active Question */}
           <div className="space-y-4 pt-2">
             <div className="flex items-center gap-2">
-              <span className="text-xs bg-slate-100 text-slate-700 font-bold px-2.5 py-0.5 rounded-full">
+              <span className="text-xs bg-slate-100 dark:bg-zinc-800 text-slate-700 dark:text-zinc-300 font-bold px-2.5 py-0.5 rounded-full">
                 {activeQuestions[currentIdx].topic}
+              </span>
+              <span className="text-xs bg-slate-100 dark:bg-zinc-800 text-slate-500 dark:text-zinc-400 font-medium px-2 py-0.5 rounded-full">
+                {activeQuestions[currentIdx].gradeText}
               </span>
             </div>
 
-            <h2 className="text-lg sm:text-xl font-bold text-slate-900 leading-relaxed">
+            {/* Scenario / Passage if present */}
+            {activeQuestions[currentIdx].scenario && (
+              <div className="bg-indigo-50/70 dark:bg-indigo-950/40 border-r-4 border-brand-500 p-4 rounded-2xl text-xs sm:text-sm text-slate-800 dark:text-zinc-200 leading-relaxed space-y-1">
+                <div className="font-bold text-brand-700 dark:text-brand-300">
+                  אירוע / קטע לעיון ולניתוח:
+                </div>
+                <p className="font-normal">{activeQuestions[currentIdx].scenario}</p>
+              </div>
+            )}
+
+            <h2 className="text-lg sm:text-xl font-bold text-slate-900 dark:text-zinc-100 leading-relaxed">
               {activeQuestions[currentIdx].question}
             </h2>
 

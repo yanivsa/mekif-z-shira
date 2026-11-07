@@ -54,6 +54,9 @@ export const HeroWelcome: React.FC<HeroWelcomeProps> = ({
   const [dilemmaChoice, setDilemmaChoice] = useState<number | null>(null);
   const [isDilemmaAnswered, setIsDilemmaAnswered] = useState(false);
   const [answeredDilemmas, setAnsweredDilemmas] = useState<Record<string, boolean>>({});
+  const [dilemmaAttempts, setDilemmaAttempts] = useState(0);
+  const [wrongDilemmaChoices, setWrongDilemmaChoices] = useState<number[]>([]);
+  const [showDilemmaHint, setShowDilemmaHint] = useState(false);
 
   const currentDilemma = TEEN_DILEMMAS[dilemmaIndex];
 
@@ -69,19 +72,34 @@ export const HeroWelcome: React.FC<HeroWelcomeProps> = ({
   const progressPercent = Math.min(100, Math.max(5, ((userStats.xp - levelInfo.currentMin) / (levelInfo.nextXp - levelInfo.currentMin)) * 100));
 
   const handleSelectDilemma = (idx: number) => {
-    if (isDilemmaAnswered) return;
-    setDilemmaChoice(idx);
-    setIsDilemmaAnswered(true);
+    if (isDilemmaAnswered || wrongDilemmaChoices.includes(idx)) return;
 
     if (idx === currentDilemma.correctIndex) {
+      setDilemmaChoice(idx);
+      setIsDilemmaAnswered(true);
+      setShowDilemmaHint(false);
       sound.playCorrect();
       fireSmallSuccessConfetti();
       if (!answeredDilemmas[currentDilemma.id]) {
-        onAddXP?.(20);
+        const xpToAdd = dilemmaAttempts === 0 ? 20 : 10;
+        onAddXP?.(xpToAdd);
         setAnsweredDilemmas(prev => ({ ...prev, [currentDilemma.id]: true }));
       }
     } else {
-      sound.playWrong();
+      if (dilemmaAttempts === 0) {
+        // First mistake: give hint from Shira and let student try again!
+        setDilemmaAttempts(1);
+        setWrongDilemmaChoices([idx]);
+        setShowDilemmaHint(true);
+        sound.playWrong();
+      } else {
+        // Second mistake: lock and reveal explanation
+        setWrongDilemmaChoices(prev => [...prev, idx]);
+        setDilemmaChoice(idx);
+        setIsDilemmaAnswered(true);
+        setShowDilemmaHint(false);
+        sound.playWrong();
+      }
     }
   };
 
@@ -89,6 +107,9 @@ export const HeroWelcome: React.FC<HeroWelcomeProps> = ({
     sound.playClick();
     setDilemmaChoice(null);
     setIsDilemmaAnswered(false);
+    setDilemmaAttempts(0);
+    setWrongDilemmaChoices([]);
+    setShowDilemmaHint(false);
     setDilemmaIndex((prev) => (prev + 1) % TEEN_DILEMMAS.length);
   };
 
@@ -345,14 +366,33 @@ export const HeroWelcome: React.FC<HeroWelcomeProps> = ({
             </div>
           </div>
 
+          {/* Shira's Hint on First Dilemma Mistake */}
+          {showDilemmaHint && !isDilemmaAnswered && (
+            <div className="bg-amber-50 dark:bg-amber-950/40 border-2 border-amber-300 dark:border-amber-700/60 rounded-2xl p-4 sm:p-5 text-amber-950 dark:text-amber-200 space-y-2 animate-in fade-in slide-in-from-top-2 duration-300 shadow-md">
+              <div className="flex items-center gap-2 font-black text-sm text-amber-800 dark:text-amber-300">
+                <span className="text-lg">💡</span>
+                <span>רמז משירה לדילמה – קיראו ונסו שוב:</span>
+              </div>
+              <p className="text-xs sm:text-sm font-medium leading-relaxed bg-white/80 dark:bg-zinc-900/80 p-3 rounded-xl border border-amber-200 dark:border-amber-800/40">
+                {currentDilemma.shiraTip}
+              </p>
+              <div className="text-xs font-bold text-amber-700 dark:text-amber-400">
+                🎯 התשובה שבחרתם אינה מדויקת. נסו שוב לבחור מבין האפשרויות הנותרות!
+              </div>
+            </div>
+          )}
+
           {/* Options Grid */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {currentDilemma.options.map((opt, oIdx) => {
               const isSelected = dilemmaChoice === oIdx;
               const isCorrect = oIdx === currentDilemma.correctIndex;
+              const isWrongChoice = wrongDilemmaChoices.includes(oIdx);
 
               let btnStyle = "bg-white dark:bg-zinc-900 border-slate-200 dark:border-zinc-800 text-slate-800 dark:text-slate-200 hover:border-amber-400";
-              if (isDilemmaAnswered) {
+              if (isWrongChoice && !isDilemmaAnswered) {
+                btnStyle = "bg-rose-50/70 dark:bg-rose-950/40 border-rose-300 dark:border-rose-900/60 text-rose-800 dark:text-rose-300 line-through opacity-60 cursor-not-allowed";
+              } else if (isDilemmaAnswered) {
                 if (isCorrect) {
                   btnStyle = "bg-emerald-50 dark:bg-emerald-950/60 border-emerald-500 text-emerald-900 dark:text-emerald-200 font-bold ring-2 ring-emerald-500/30";
                 } else if (isSelected && !isCorrect) {
@@ -366,7 +406,7 @@ export const HeroWelcome: React.FC<HeroWelcomeProps> = ({
                 <button
                   key={oIdx}
                   onClick={() => handleSelectDilemma(oIdx)}
-                  disabled={isDilemmaAnswered}
+                  disabled={isDilemmaAnswered || isWrongChoice}
                   className={`p-3.5 rounded-xl border text-right text-xs sm:text-sm font-medium transition-all flex items-start gap-2.5 ${btnStyle}`}
                 >
                   <span className="font-bold text-xs mt-0.5 opacity-60">
