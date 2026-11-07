@@ -1,6 +1,20 @@
 import React from 'react';
-import { Award, Flame, BookOpen, Calculator, PenTool, CheckCircle2, Database } from 'lucide-react';
+import { 
+  Award, 
+  Flame, 
+  BookOpen, 
+  Calculator, 
+  PenTool, 
+  CheckCircle2, 
+  Database,
+  Palette,
+  Volume2,
+  VolumeX,
+  Zap
+} from 'lucide-react';
 import { UserStats } from '../types';
+import { useTheme } from '../utils/themeContext';
+import { sound } from '../utils/soundEngine';
 
 interface NavbarProps {
   currentTab: string;
@@ -8,6 +22,8 @@ interface NavbarProps {
   userStats: UserStats;
   onOpenProgress: () => void;
   onOpenGlossary: () => void;
+  onOpenThemeSelector: () => void;
+  onOpenSpeedDrill: () => void;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
@@ -16,7 +32,15 @@ export const Navbar: React.FC<NavbarProps> = ({
   userStats,
   onOpenProgress,
   onOpenGlossary,
+  onOpenThemeSelector,
+  onOpenSpeedDrill,
 }) => {
+  const { theme, isSoundEnabled, toggleSound } = useTheme();
+
+  const handleTabClick = (tab: string) => {
+    sound.playClick();
+    setCurrentTab(tab);
+  };
   return (
     <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-200 shadow-sm transition-all">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -44,7 +68,7 @@ export const Navbar: React.FC<NavbarProps> = ({
           {/* Navigation Links */}
           <nav className="hidden md:flex items-center gap-1">
             <button
-              onClick={() => setCurrentTab('home')}
+              onClick={() => handleTabClick('home')}
               className={`px-3 py-2 rounded-lg text-sm font-semibold transition-all ${
                 currentTab === 'home'
                   ? 'bg-brand-50 text-brand-700 shadow-sm'
@@ -54,7 +78,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               דף הבית
             </button>
             <button
-              onClick={() => setCurrentTab('civics')}
+              onClick={() => handleTabClick('civics')}
               className={`px-3 py-2 rounded-lg text-sm font-semibold transition-all flex items-center gap-1.5 ${
                 currentTab === 'civics'
                   ? 'bg-civics-light text-civics-dark shadow-sm'
@@ -65,7 +89,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               מרחב אזרחות
             </button>
             <button
-              onClick={() => setCurrentTab('tsehes')}
+              onClick={() => handleTabClick('tsehes')}
               className={`px-3 py-2 rounded-lg text-sm font-semibold transition-all flex items-center gap-1.5 ${
                 currentTab === 'tsehes'
                   ? 'bg-amber-100 text-amber-900 shadow-sm'
@@ -76,7 +100,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               מאמן צה״ס לבגרות
             </button>
             <button
-              onClick={() => setCurrentTab('finance')}
+              onClick={() => handleTabClick('finance')}
               className={`px-3 py-2 rounded-lg text-sm font-semibold transition-all flex items-center gap-1.5 ${
                 currentTab === 'finance'
                   ? 'bg-emerald-100 text-emerald-900 shadow-sm'
@@ -87,7 +111,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               חינוך פיננסי
             </button>
             <button
-              onClick={() => setCurrentTab('bank')}
+              onClick={() => handleTabClick('bank')}
               className={`px-3 py-2 rounded-lg text-sm font-semibold transition-all flex items-center gap-1.5 ${
                 currentTab === 'bank'
                   ? 'bg-indigo-100 text-indigo-900 shadow-sm font-black'
@@ -98,7 +122,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               בנק 6,000+ שאלות
             </button>
             <button
-              onClick={() => setCurrentTab('exam')}
+              onClick={() => handleTabClick('exam')}
               className={`px-3 py-2 rounded-lg text-sm font-semibold transition-all flex items-center gap-1.5 ${
                 currentTab === 'exam'
                   ? 'bg-brand-600 text-white shadow-sm'
@@ -110,21 +134,67 @@ export const Navbar: React.FC<NavbarProps> = ({
             </button>
           </nav>
 
-          {/* Gamification & User Stats Bar */}
-          <div className="flex items-center gap-2 sm:gap-3">
+          {/* Gamification, Themes & Audio Control Bar */}
+          <div className="flex items-center gap-2 sm:gap-2.5">
+            
+            {/* Speed Drill Button */}
+            <button
+              onClick={() => {
+                sound.playStreak();
+                onOpenSpeedDrill();
+              }}
+              className="flex items-center gap-1 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white px-2.5 py-1.5 rounded-xl text-xs font-black shadow-xs shadow-orange-500/20 transition-all hover:scale-105 active:scale-95 animate-pulse"
+              title="ספיד-דריל: אתגר 60 שניות מהיר!"
+            >
+              <Zap className="w-3.5 h-3.5 fill-current" />
+              <span className="hidden sm:inline">60 שנ׳</span>
+            </button>
+
+            {/* Theme Selector Pill */}
+            <button
+              onClick={() => {
+                sound.playClick();
+                onOpenThemeSelector();
+              }}
+              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-xs font-black shadow-xs transition-all hover:scale-105 active:scale-95"
+              title="בחר סטייל: גיימינג, פופ, ספורט, כדורגל, כדורסל, עתידני ועוד"
+            >
+              <span>{theme.icon}</span>
+              <span className="hidden lg:inline">{theme.name}</span>
+            </button>
+
+            {/* Sound Toggle */}
+            <button
+              onClick={toggleSound}
+              className={`p-1.5 rounded-xl border transition-all hover:scale-105 active:scale-95 ${
+                isSoundEnabled 
+                  ? 'bg-indigo-50 border-indigo-200 text-indigo-700 hover:bg-indigo-100' 
+                  : 'bg-slate-100 border-slate-200 text-slate-400 hover:bg-slate-200'
+              }`}
+              title={isSoundEnabled ? 'השתק צלילים' : 'הפעל צלילים ואפקטים'}
+            >
+              {isSoundEnabled ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
+            </button>
+
             {/* Quick Glossary Pill */}
             <button
-              onClick={onOpenGlossary}
+              onClick={() => {
+                sound.playClick();
+                onOpenGlossary();
+              }}
               className="text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 px-2.5 py-1.5 rounded-lg font-medium transition-colors hidden sm:flex items-center gap-1"
               title="פתח מילון מושגים"
             >
-              📖 מילון מושגים
+              📖 מילון
             </button>
 
             {/* Streak */}
             <div 
               className="flex items-center gap-1 bg-amber-50 border border-amber-200 text-amber-800 px-2.5 py-1 rounded-full text-xs font-bold shadow-xs cursor-pointer hover:bg-amber-100 transition-colors"
-              onClick={onOpenProgress}
+              onClick={() => {
+                sound.playStreak();
+                onOpenProgress();
+              }}
               title={`רצף למידה של ${userStats.streakDays} ימים`}
             >
               <Flame className="w-3.5 h-3.5 text-amber-500 fill-amber-500 animate-pulse" />
@@ -135,7 +205,10 @@ export const Navbar: React.FC<NavbarProps> = ({
             {/* XP Points */}
             <div 
               className="flex items-center gap-1.5 bg-brand-50 border border-brand-200 text-brand-900 px-3 py-1 rounded-full text-xs font-black shadow-xs cursor-pointer hover:bg-brand-100 transition-colors"
-              onClick={onOpenProgress}
+              onClick={() => {
+                sound.playFanfare();
+                onOpenProgress();
+              }}
               title="סך כל נקודות הניסיון שלך"
             >
               <Award className="w-3.5 h-3.5 text-brand-600" />
@@ -144,7 +217,10 @@ export const Navbar: React.FC<NavbarProps> = ({
 
             {/* Profile Avatar */}
             <button
-              onClick={onOpenProgress}
+              onClick={() => {
+                sound.playClick();
+                onOpenProgress();
+              }}
               className="w-9 h-9 rounded-full bg-slate-100 hover:bg-slate-200 border border-slate-300 flex items-center justify-center text-slate-700 text-sm font-bold transition-all hover:scale-105"
               title="ההתקדמות והתגים שלי"
             >

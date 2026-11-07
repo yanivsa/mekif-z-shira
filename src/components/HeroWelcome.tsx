@@ -11,22 +11,30 @@ import {
   Flame,
   Clock,
   ExternalLink,
-  Database
+  Database,
+  Zap,
+  Palette
 } from 'lucide-react';
 import { SHIRA_DAILY_TIPS, SHIRA_WELCOME_MESSAGES } from '../data/shiraTips';
 import { UserStats } from '../types';
+import { useTheme } from '../utils/themeContext';
 
 interface HeroWelcomeProps {
   onNavigate: (tab: string) => void;
   userStats: UserStats;
   onOpenGlossary: () => void;
+  onOpenThemeSelector?: () => void;
+  onOpenSpeedDrill?: () => void;
 }
 
 export const HeroWelcome: React.FC<HeroWelcomeProps> = ({
   onNavigate,
   userStats,
-  onOpenGlossary
+  onOpenGlossary,
+  onOpenThemeSelector,
+  onOpenSpeedDrill
 }) => {
+  const { theme } = useTheme();
   const [tipIndex, setTipIndex] = useState(0);
   const currentTip = SHIRA_DAILY_TIPS[tipIndex];
 
@@ -95,6 +103,26 @@ export const HeroWelcome: React.FC<HeroWelcomeProps> = ({
                 <PenTool className="w-4 h-4 text-amber-300" />
                 <span>מאמן צה״ס לבגרות</span>
               </button>
+
+              {onOpenSpeedDrill && (
+                <button
+                  onClick={onOpenSpeedDrill}
+                  className="bg-gradient-to-r from-amber-400 to-orange-500 hover:from-amber-300 hover:to-orange-400 text-slate-950 font-extrabold px-4 py-3.5 rounded-xl shadow-lg transition-all text-sm sm:text-base flex items-center gap-2"
+                >
+                  <Zap className="w-4 h-4 fill-slate-950" />
+                  <span>אתגר 60 שניות ⚡️</span>
+                </button>
+              )}
+
+              {onOpenThemeSelector && (
+                <button
+                  onClick={onOpenThemeSelector}
+                  className="bg-white/10 hover:bg-white/20 text-white border border-white/20 font-medium px-4 py-3.5 rounded-xl backdrop-blur-sm transition-all text-sm sm:text-base flex items-center gap-2"
+                >
+                  <Palette className="w-4 h-4 text-purple-300" />
+                  <span>בחר סטייל 🎨</span>
+                </button>
+              )}
             </div>
           </div>
 
@@ -103,9 +131,9 @@ export const HeroWelcome: React.FC<HeroWelcomeProps> = ({
             <div className="relative group">
               <div className="w-28 h-28 sm:w-36 sm:h-36 rounded-3xl bg-gradient-to-tr from-amber-400 to-orange-400 p-1.5 shadow-2xl shadow-orange-500/30">
                 <div className="w-full h-full rounded-2xl bg-brand-950 flex flex-col items-center justify-center text-center p-3 border border-white/20">
-                  <span className="text-4xl sm:text-5xl">👩‍🏫</span>
+                  <span className="text-4xl sm:text-5xl">{theme.shiraAvatar}</span>
                   <span className="text-xs font-bold text-amber-200 mt-1">המורה שירה</span>
-                  <span className="text-[10px] text-slate-300">רכזת אזרחות ופיננסים</span>
+                  <span className="text-[10px] text-slate-300">{theme.shiraTitle}</span>
                 </div>
               </div>
               <div className="absolute -bottom-2 -right-2 bg-emerald-500 text-white p-1 rounded-full border-2 border-brand-900 shadow-md">
@@ -114,8 +142,8 @@ export const HeroWelcome: React.FC<HeroWelcomeProps> = ({
             </div>
 
             <div className="mt-4 bg-white/10 backdrop-blur-md rounded-2xl p-3.5 max-w-xs text-xs text-slate-200 border border-white/15 text-center relative shadow-inner">
-              <p className="italic">
-                "{SHIRA_WELCOME_MESSAGES[0]}"
+              <p className="italic font-medium">
+                "{theme.shiraVibe}"
               </p>
             </div>
           </div>

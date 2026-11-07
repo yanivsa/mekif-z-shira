@@ -8,15 +8,20 @@ import { ExamSimulator } from './components/ExamSimulator';
 import { QuestionBankExplorer } from './components/QuestionBankExplorer';
 import { GlossaryModal } from './components/GlossaryModal';
 import { UserProgressModal } from './components/UserProgressModal';
+import { ThemeSelectorModal } from './components/ThemeSelectorModal';
+import { SpeedDrillModal } from './components/SpeedDrillModal';
 import { Footer } from './components/Footer';
 import { getInitialStats, saveUserStats, unlockBadge } from './utils/storage';
 import { UserStats } from './types';
+import { ThemeProvider } from './utils/themeContext';
 
-export function App() {
+export function AppContent() {
   const [currentTab, setCurrentTab] = useState<string>('home');
   const [userStats, setUserStats] = useState<UserStats>(getInitialStats);
   const [isGlossaryOpen, setIsGlossaryOpen] = useState<boolean>(false);
   const [isProgressOpen, setIsProgressOpen] = useState<boolean>(false);
+  const [isThemeOpen, setIsThemeOpen] = useState<boolean>(false);
+  const [isSpeedDrillOpen, setIsSpeedDrillOpen] = useState<boolean>(false);
 
   // Sync to storage on userStats change
   useEffect(() => {
@@ -63,7 +68,7 @@ export function App() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-slate-50 text-slate-900 font-sans selection:bg-brand-500 selection:text-white">
+    <div className="min-h-screen flex flex-col font-sans selection:bg-brand-500 selection:text-white">
       {/* Top Navigation */}
       <Navbar
         currentTab={currentTab}
@@ -71,6 +76,8 @@ export function App() {
         userStats={userStats}
         onOpenProgress={() => setIsProgressOpen(true)}
         onOpenGlossary={() => setIsGlossaryOpen(true)}
+        onOpenThemeSelector={() => setIsThemeOpen(true)}
+        onOpenSpeedDrill={() => setIsSpeedDrillOpen(true)}
       />
 
       {/* Main Content Area */}
@@ -83,6 +90,8 @@ export function App() {
             }}
             userStats={userStats}
             onOpenGlossary={() => setIsGlossaryOpen(true)}
+            onOpenThemeSelector={() => setIsThemeOpen(true)}
+            onOpenSpeedDrill={() => setIsSpeedDrillOpen(true)}
           />
         )}
 
@@ -147,7 +156,26 @@ export function App() {
         userStats={userStats}
         onUpdateName={handleUpdateStudentName}
       />
+
+      <ThemeSelectorModal
+        isOpen={isThemeOpen}
+        onClose={() => setIsThemeOpen(false)}
+      />
+
+      <SpeedDrillModal
+        isOpen={isSpeedDrillOpen}
+        onClose={() => setIsSpeedDrillOpen(false)}
+        onAddXP={handleAddXP}
+      />
     </div>
+  );
+}
+
+export function App() {
+  return (
+    <ThemeProvider>
+      <AppContent />
+    </ThemeProvider>
   );
 }
 
