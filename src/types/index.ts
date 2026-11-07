@@ -7,7 +7,7 @@ export interface Question {
   gradeLevel: GradeLevel;
   gradeText: string;
   topic: string;
-  difficulty: 'בסיסי' | 'בינוני' | 'מתקדם' | 'בגרות';
+  difficulty: 'בסיסי' | 'בינוני' | 'מתקדם' | 'בגרות' | 'אתגר עליון';
   question: string;
   scenario?: string;
   options: string[];

@@ -5,6 +5,7 @@ import { CivicsHub } from './components/CivicsHub';
 import { TsehesTrainer } from './components/TsehesTrainer';
 import { FinancialHub } from './components/FinancialHub';
 import { ExamSimulator } from './components/ExamSimulator';
+import { QuestionBankExplorer } from './components/QuestionBankExplorer';
 import { GlossaryModal } from './components/GlossaryModal';
 import { UserProgressModal } from './components/UserProgressModal';
 import { Footer } from './components/Footer';
@@ -104,6 +105,16 @@ export function App() {
 
         {currentTab === 'finance' && (
           <FinancialHub onAddXP={handleAddXP} />
+        )}
+
+        {currentTab === 'bank' && (
+          <QuestionBankExplorer 
+            onAddXP={handleAddXP}
+            onNavigateToSimulator={() => {
+              setCurrentTab('exam');
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            }}
+          />
         )}
 
         {currentTab === 'exam' && (

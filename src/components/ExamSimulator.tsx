@@ -11,8 +11,8 @@ import {
   X,
   FileCheck
 } from 'lucide-react';
-import { ALL_QUESTIONS } from '../data/allQuestions';
 import { Question, SubjectType, ExamResult } from '../types';
+import { MASTER_QUESTION_BANK, getFilteredQuestions } from '../data/questionBank';
 import { fireSchoolPrideConfetti } from '../utils/confetti';
 
 interface ExamSimulatorProps {
@@ -29,14 +29,16 @@ export const ExamSimulator: React.FC<ExamSimulatorProps> = ({
   // Setup state
   const [examStatus, setExamStatus] = useState<'setup' | 'active' | 'finished'>('setup');
   const [selectedSubject, setSelectedSubject] = useState<'all' | 'civics' | 'finance'>('all');
-  const [questionCount, setQuestionCount] = useState<number>(5);
-  const [timeLimitMinutes, setTimeLimitMinutes] = useState<number>(10);
+  const [selectedGrade, setSelectedGrade] = useState<'all' | 'junior' | 'senior'>('all');
+  const [selectedDifficulty, setSelectedDifficulty] = useState<string>('all');
+  const [questionCount, setQuestionCount] = useState<number>(10);
+  const [timeLimitMinutes, setTimeLimitMinutes] = useState<number>(15);
 
   // Active exam state
   const [activeQuestions, setActiveQuestions] = useState<Question[]>([]);
   const [currentIdx, setCurrentIdx] = useState<number>(0);
   const [userAnswers, setUserAnswers] = useState<Record<number, number>>({});
-  const [secondsRemaining, setSecondsRemaining] = useState<number>(600);
+  const [secondsRemaining, setSecondsRemaining] = useState<number>(900);
 
   // Results state
   const [examResult, setExamResult] = useState<ExamResult | null>(null);
@@ -59,15 +61,16 @@ export const ExamSimulator: React.FC<ExamSimulatorProps> = ({
     return () => clearInterval(interval);
   }, [examStatus, secondsRemaining]);
 
-  const startExam = () => {
-    // Filter questions by subject
-    let pool = ALL_QUESTIONS;
-    if (selectedSubject !== 'all') {
-      pool = ALL_QUESTIONS.filter((q) => q.subject === selectedSubject);
-    }
+  // Available questions in current setup pool
+  const currentPool = getFilteredQuestions({
+    subject: selectedSubject,
+    gradeLevel: selectedGrade,
+    difficulty: selectedDifficulty as any
+  });
 
-    // Shuffle and pick requested count
-    const shuffled = [...pool].sort(() => 0.5 - Math.random());
+  const startExam = () => {
+    // Pick requested count from currentPool
+    const shuffled = [...currentPool].sort(() => 0.5 - Math.random());
     const selected = shuffled.slice(0, Math.min(questionCount, shuffled.length));
 
     setActiveQuestions(selected);
@@ -194,22 +197,113 @@ export const ExamSimulator: React.FC<ExamSimulatorProps> = ({
               </div>
             </div>
 
+            {/* Grade level selector */}
+            <div className="space-y-2">
+              <label className="font-bold text-slate-800 block">שכבת גיל / שלב חינוך:</label>
+              <div className="grid grid-cols-3 gap-2">
+                <button
+                  type="button"
+                  onClick={() => setSelectedGrade('all')}
+                  className={`p-2.5 rounded-xl border text-xs font-bold transition-all ${
+                    selectedGrade === 'all'
+                      ? 'bg-indigo-600 text-white border-indigo-600 shadow-xs'
+                      : 'bg-slate-50 text-slate-700 hover:bg-slate-100'
+                  }`}
+                >
+                  כל השכבות
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setSelectedGrade('junior')}
+                  className={`p-2.5 rounded-xl border text-xs font-bold transition-all ${
+                    selectedGrade === 'junior'
+                      ? 'bg-indigo-600 text-white border-indigo-600 shadow-xs'
+                      : 'bg-slate-50 text-slate-700 hover:bg-slate-100'
+                  }`}
+                >
+                  חט״ב (ז׳–ט׳)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setSelectedGrade('senior')}
+                  className={`p-2.5 rounded-xl border text-xs font-bold transition-all ${
+                    selectedGrade === 'senior'
+                      ? 'bg-indigo-600 text-white border-indigo-600 shadow-xs'
+                      : 'bg-slate-50 text-slate-700 hover:bg-slate-100'
+                  }`}
+                >
+                  חט״ע ובגרות (י׳–י״ב)
+                </button>
+              </div>
+            </div>
+
+            {/* Difficulty selector */}
+            <div className="space-y-2">
+              <label className="font-bold text-slate-800 block">רמת קושי של השאלות:</label>
+              <div className="grid grid-cols-4 gap-2">
+                <button
+                  type="button"
+                  onClick={() => setSelectedDifficulty('all')}
+                  className={`p-2 rounded-xl border text-xs font-bold transition-all ${
+                    selectedDifficulty === 'all'
+                      ? 'bg-purple-600 text-white border-purple-600 shadow-xs'
+                      : 'bg-slate-50 text-slate-700 hover:bg-slate-100'
+                  }`}
+                >
+                  מעורב
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setSelectedDifficulty('מתקדם')}
+                  className={`p-2 rounded-xl border text-xs font-bold transition-all ${
+                    selectedDifficulty === 'מתקדם'
+                      ? 'bg-purple-600 text-white border-purple-600 shadow-xs'
+                      : 'bg-slate-50 text-slate-700 hover:bg-slate-100'
+                  }`}
+                >
+                  מתקדם
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setSelectedDifficulty('בגרות')}
+                  className={`p-2 rounded-xl border text-xs font-bold transition-all ${
+                    selectedDifficulty === 'בגרות'
+                      ? 'bg-purple-600 text-white border-purple-600 shadow-xs'
+                      : 'bg-slate-50 text-slate-700 hover:bg-slate-100'
+                  }`}
+                >
+                  רמת בגרות
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setSelectedDifficulty('אתגר עליון')}
+                  className={`p-2 rounded-xl border text-xs font-bold transition-all ${
+                    selectedDifficulty === 'אתגר עליון'
+                      ? 'bg-rose-600 text-white border-rose-600 shadow-xs'
+                      : 'bg-rose-50 text-rose-700 border-rose-200 hover:bg-rose-100'
+                  }`}
+                >
+                  אתגר עליון 🔥
+                </button>
+              </div>
+            </div>
+
             {/* Questions count */}
             <div className="space-y-2">
-              <label className="font-bold text-slate-800 block">מספר שאלות:</label>
-              <div className="grid grid-cols-3 gap-2">
-                {[5, 8, 10].map((num) => (
+              <label className="font-bold text-slate-800 block">מספר שאלות במבחן:</label>
+              <div className="grid grid-cols-5 gap-2">
+                {[5, 10, 15, 20, 30].map((num) => (
                   <button
                     key={num}
                     type="button"
                     onClick={() => setQuestionCount(num)}
-                    className={`p-3 rounded-xl border text-xs sm:text-sm font-bold transition-all ${
+                    className={`p-2.5 rounded-xl border text-xs font-bold transition-all ${
                       questionCount === num
                         ? 'bg-brand-600 text-white border-brand-600 shadow-xs'
                         : 'bg-slate-50 text-slate-700 hover:bg-slate-100'
                     }`}
                   >
-                    {num} שאלות
+                    {num}
                   </button>
                 ))}
               </div>
@@ -217,27 +311,32 @@ export const ExamSimulator: React.FC<ExamSimulatorProps> = ({
 
             {/* Time limit */}
             <div className="space-y-2">
-              <label className="font-bold text-slate-800 block">זמן מוקצב:</label>
-              <div className="grid grid-cols-3 gap-2">
-                {[5, 10, 15].map((mins) => (
+              <label className="font-bold text-slate-800 block">זמן מוקצב (דקות):</label>
+              <div className="grid grid-cols-4 gap-2">
+                {[10, 15, 25, 45].map((mins) => (
                   <button
                     key={mins}
                     type="button"
                     onClick={() => setTimeLimitMinutes(mins)}
-                    className={`p-3 rounded-xl border text-xs sm:text-sm font-bold transition-all ${
+                    className={`p-2.5 rounded-xl border text-xs font-bold transition-all ${
                       timeLimitMinutes === mins
                         ? 'bg-brand-600 text-white border-brand-600 shadow-xs'
                         : 'bg-slate-50 text-slate-700 hover:bg-slate-100'
                     }`}
                   >
-                    {mins} דקות
+                    {mins} דק׳
                   </button>
                 ))}
               </div>
             </div>
 
+            {/* Pool availability info */}
+            <div className="bg-slate-50 border border-slate-200 rounded-xl p-3 text-center text-xs font-bold text-slate-600">
+              מאגר של <span className="text-brand-600 font-black">{currentPool.length.toLocaleString()}</span> שאלות זמין להגרלת סימולציה זו מתוך 2,593 שאלות!
+            </div>
+
             {/* Start Button */}
-            <div className="pt-4">
+            <div className="pt-2">
               <button
                 onClick={startExam}
                 className="w-full bg-gradient-to-r from-brand-600 to-indigo-600 hover:from-brand-700 hover:to-indigo-700 text-white font-extrabold py-4 rounded-2xl shadow-lg shadow-brand-500/25 transition-all text-base flex items-center justify-center gap-2"

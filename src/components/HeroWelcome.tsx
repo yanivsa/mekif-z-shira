@@ -10,7 +10,8 @@ import {
   Lightbulb,
   Flame,
   Clock,
-  ExternalLink
+  ExternalLink,
+  Database
 } from 'lucide-react';
 import { SHIRA_DAILY_TIPS, SHIRA_WELCOME_MESSAGES } from '../data/shiraTips';
 import { UserStats } from '../types';
@@ -203,7 +204,7 @@ export const HeroWelcome: React.FC<HeroWelcomeProps> = ({
           </button>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
 
           {/* Card 1: Civics Hub */}
           <div 
@@ -283,6 +284,33 @@ export const HeroWelcome: React.FC<HeroWelcomeProps> = ({
             </div>
             <div className="pt-6 mt-4 border-t border-slate-100 flex items-center justify-between text-sm font-bold text-emerald-700">
               <span>למדריך ולכלים הפיננסיים</span>
+              <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+            </div>
+          </div>
+
+          {/* Card 4: 2,500+ Question Bank */}
+          <div 
+            onClick={() => onNavigate('bank')}
+            className="group bg-gradient-to-br from-indigo-900 to-slate-900 text-white rounded-3xl p-6 border border-indigo-700/50 hover:border-indigo-400 shadow-sm hover:shadow-xl transition-all cursor-pointer flex flex-col justify-between"
+          >
+            <div>
+              <div className="flex items-center justify-between mb-4">
+                <div className="w-12 h-12 rounded-2xl bg-indigo-500/30 text-indigo-300 flex items-center justify-center group-hover:scale-110 transition-transform border border-indigo-500/30">
+                  <Database className="w-6 h-6" />
+                </div>
+                <span className="text-xs font-black px-2.5 py-1 rounded-full bg-amber-400 text-amber-950">
+                  2,590+ שאלות
+                </span>
+              </div>
+              <h3 className="text-xl font-black text-white group-hover:text-indigo-300 transition-colors">
+                בנק השאלות המלא
+              </h3>
+              <p className="text-slate-300 text-sm mt-2 leading-relaxed">
+                מאגר ענק של אלפי שאלות אתגר מדורגות לחט״ב וחט״ע ברמת קושי עילאית, חיפוש מהיר, מחוונים מפורטים וטיפים של שירה.
+              </p>
+            </div>
+            <div className="pt-6 mt-4 border-t border-slate-700/80 flex items-center justify-between text-sm font-bold text-indigo-300">
+              <span>חיפוש ותרגול במאגר ➔</span>
               <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
             </div>
           </div>

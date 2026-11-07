@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { BookOpen, CheckCircle2, XCircle, Lightbulb, ArrowLeft, PenTool, Sparkles, Award } from 'lucide-react';
+import { BookOpen, CheckCircle2, XCircle, Lightbulb, ArrowLeft, PenTool, Sparkles, Award, Shuffle } from 'lucide-react';
 import { ALL_QUESTIONS } from '../data/allQuestions';
+import { FULL_CIVICS_BANK } from '../data/questionBank';
 import { Question } from '../types';
 import { fireSmallSuccessConfetti } from '../utils/confetti';
 
@@ -12,23 +13,30 @@ interface CivicsHubProps {
 export const CivicsHub: React.FC<CivicsHubProps> = ({ onAddXP, onNavigateToTsehes }) => {
   const [selectedGrade, setSelectedGrade] = useState<'all' | 'junior' | 'senior'>('all');
   const [selectedTopic, setSelectedTopic] = useState<string>('all');
+  const [selectedDifficulty, setSelectedDifficulty] = useState<string>('all');
   const [activeQuestionIndex, setActiveQuestionIndex] = useState<number>(0);
   const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
   const [isAnswered, setIsAnswered] = useState<boolean>(false);
   const [showExplanation, setShowExplanation] = useState<boolean>(false);
 
+  // Combine curated and full bank
+  const allCivicsPool = [
+    ...ALL_QUESTIONS.filter(q => q.subject === 'civics'),
+    ...FULL_CIVICS_BANK
+  ];
+
   // Filter civics questions
-  const civicsQuestions = ALL_QUESTIONS.filter((q) => {
-    if (q.subject !== 'civics') return false;
+  const civicsQuestions = allCivicsPool.filter((q) => {
     if (selectedGrade !== 'all' && q.gradeLevel !== selectedGrade) return false;
     if (selectedTopic !== 'all' && q.topic !== selectedTopic) return false;
+    if (selectedDifficulty !== 'all' && q.difficulty !== selectedDifficulty) return false;
     return true;
   });
 
   const currentQ: Question | undefined = civicsQuestions[activeQuestionIndex];
 
   // Topics list for filter
-  const topics = Array.from(new Set(ALL_QUESTIONS.filter(q => q.subject === 'civics').map(q => q.topic)));
+  const topics = Array.from(new Set(allCivicsPool.map(q => q.topic)));
 
   const handleSelectOption = (idx: number) => {
     if (isAnswered) return;
@@ -47,6 +55,14 @@ export const CivicsHub: React.FC<CivicsHubProps> = ({ onAddXP, onNavigateToTsehe
     setIsAnswered(false);
     setShowExplanation(false);
     setActiveQuestionIndex((prev) => (prev + 1) % civicsQuestions.length);
+  };
+
+  const randomQuestion = () => {
+    setSelectedAnswer(null);
+    setIsAnswered(false);
+    setShowExplanation(false);
+    const rand = Math.floor(Math.random() * civicsQuestions.length);
+    setActiveQuestionIndex(rand);
   };
 
   return (
@@ -136,6 +152,36 @@ export const CivicsHub: React.FC<CivicsHubProps> = ({ onAddXP, onNavigateToTsehe
           ))}
         </div>
 
+        {/* Difficulty and Action row */}
+        <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-slate-100">
+          <div className="flex items-center gap-1.5 flex-wrap">
+            <span className="text-xs font-bold text-slate-500 ml-2">רמת קושי:</span>
+            {['all', 'מתקדם', 'בגרות', 'אתגר עליון'].map((diff) => (
+              <button
+                key={diff}
+                onClick={() => { setSelectedDifficulty(diff); setActiveQuestionIndex(0); setIsAnswered(false); }}
+                className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all ${
+                  selectedDifficulty === diff
+                    ? diff === 'אתגר עליון'
+                      ? 'bg-rose-600 text-white'
+                      : 'bg-civics text-white'
+                    : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                }`}
+              >
+                {diff === 'all' ? 'הכל' : diff}
+              </button>
+            ))}
+          </div>
+
+          <button
+            onClick={randomQuestion}
+            className="text-xs font-bold bg-indigo-50 text-indigo-700 hover:bg-indigo-100 px-3 py-1.5 rounded-xl border border-indigo-200 flex items-center gap-1.5 transition-all shadow-2xs"
+          >
+            <Shuffle className="w-3.5 h-3.5" />
+            <span>שאלה אקראית מתוך {civicsQuestions.length} 🎲</span>
+          </button>
+        </div>
+
       </div>
 
       {/* Question Card */}
@@ -144,19 +190,23 @@ export const CivicsHub: React.FC<CivicsHubProps> = ({ onAddXP, onNavigateToTsehe
           
           {/* Question Meta Header */}
           <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-4">
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-wrap">
               <span className="bg-civics-light text-civics-dark font-extrabold text-xs px-2.5 py-1 rounded-full">
                 {currentQ.gradeText}
               </span>
               <span className="bg-slate-100 text-slate-700 font-semibold text-xs px-2.5 py-1 rounded-full">
                 {currentQ.topic}
               </span>
-              <span className="bg-amber-100 text-amber-900 font-bold text-xs px-2.5 py-1 rounded-full">
+              <span className={`font-bold text-xs px-2.5 py-1 rounded-full ${
+                currentQ.difficulty === 'אתגר עליון'
+                  ? 'bg-rose-100 text-rose-800 border border-rose-200'
+                  : 'bg-amber-100 text-amber-900'
+              }`}>
                 רמה: {currentQ.difficulty}
               </span>
             </div>
 
-            <div className="text-xs text-slate-500 font-bold">
+            <div className="text-xs text-slate-500 font-bold bg-slate-50 px-2.5 py-1 rounded-lg border border-slate-200">
               שאלה {activeQuestionIndex + 1} מתוך {civicsQuestions.length}
             </div>
           </div>

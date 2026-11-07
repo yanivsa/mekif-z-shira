@@ -11,10 +11,12 @@ import {
   TrendingUp,
   CreditCard,
   Building2,
-  Lightbulb
+  Lightbulb,
+  Shuffle
 } from 'lucide-react';
 import { EXTERNAL_TOOLS } from '../data/externalTools';
 import { ALL_QUESTIONS } from '../data/allQuestions';
+import { FULL_FINANCE_BANK } from '../data/questionBank';
 import { Question } from '../types';
 import { fireSmallSuccessConfetti } from '../utils/confetti';
 
@@ -35,11 +37,22 @@ export const FinancialHub: React.FC<FinancialHubProps> = ({ onAddXP }) => {
   const [years, setYears] = useState<number>(10);
   const annualRate = 0.07; // 7% standard market index average
 
-  // Quiz state
-  const financialQuestions = ALL_QUESTIONS.filter(q => q.subject === 'finance');
+  // Quiz state with 1,320+ questions
+  const allFinancePool = [
+    ...ALL_QUESTIONS.filter(q => q.subject === 'finance'),
+    ...FULL_FINANCE_BANK
+  ];
+  const [selectedTopic, setSelectedTopic] = useState<string>('all');
+  const [selectedDifficulty, setSelectedDifficulty] = useState<string>('all');
   const [activeQIndex, setActiveQIndex] = useState(0);
   const [selectedAns, setSelectedAns] = useState<number | null>(null);
   const [isAnsDone, setIsAnsDone] = useState(false);
+
+  const financialQuestions = allFinancePool.filter(q => {
+    if (selectedTopic !== 'all' && q.topic !== selectedTopic) return false;
+    if (selectedDifficulty !== 'all' && q.difficulty !== selectedDifficulty) return false;
+    return true;
+  });
 
   const currentQ: Question | undefined = financialQuestions[activeQIndex];
 
@@ -435,73 +448,136 @@ export const FinancialHub: React.FC<FinancialHubProps> = ({ onAddXP }) => {
       )}
 
       {/* TAB 4: PRACTICE QUIZ */}
-      {activeTab === 'quiz' && currentQ && (
-        <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-sm space-y-6 animate-fadeIn">
+      {activeTab === 'quiz' && (
+        <div className="space-y-4 animate-fadeIn">
           
-          <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-            <div className="flex items-center gap-2">
-              <span className="bg-emerald-100 text-emerald-900 font-bold text-xs px-2.5 py-1 rounded-full">
-                {currentQ.gradeText}
-              </span>
-              <span className="bg-slate-100 text-slate-700 font-semibold text-xs px-2.5 py-1 rounded-full">
-                {currentQ.topic}
-              </span>
-            </div>
-            <span className="text-xs text-slate-500 font-bold">
-              שאלה {activeQIndex + 1} מתוך {financialQuestions.length}
-            </span>
-          </div>
-
-          <div className="text-lg font-bold text-slate-900 leading-relaxed">
-            {currentQ.question}
-          </div>
-
-          <div className="space-y-2.5 pt-2">
-            {currentQ.options.map((opt, idx) => {
-              const isSelected = selectedAns === idx;
-              const isCorrect = idx === currentQ.correctIndex;
-              let style = "border-slate-200 hover:border-emerald-500 hover:bg-slate-50 text-slate-800";
-              if (isAnsDone) {
-                if (isCorrect) style = "bg-emerald-500 text-white font-bold border-emerald-500";
-                else if (isSelected) style = "bg-rose-500 text-white border-rose-500";
-                else style = "opacity-50 border-slate-200";
-              }
-              return (
+          {/* Quick Quiz Filters */}
+          <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs flex flex-wrap items-center justify-between gap-3">
+            <div className="flex flex-wrap items-center gap-1.5">
+              <span className="text-xs font-bold text-slate-500 ml-1">רמת קושי:</span>
+              {['all', 'בינוני', 'מתקדם', 'בגרות', 'אתגר עליון'].map((diff) => (
                 <button
-                  key={idx}
-                  disabled={isAnsDone}
-                  onClick={() => handleSelectQuiz(idx)}
-                  className={`w-full p-4 rounded-2xl border text-right text-xs sm:text-sm leading-relaxed transition-all ${style}`}
+                  key={diff}
+                  onClick={() => { setSelectedDifficulty(diff); setActiveQIndex(0); setIsAnsDone(false); setSelectedAns(null); }}
+                  className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all ${
+                    selectedDifficulty === diff
+                      ? diff === 'אתגר עליון'
+                        ? 'bg-rose-600 text-white'
+                        : 'bg-emerald-600 text-white'
+                      : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                  }`}
                 >
-                  {opt}
+                  {diff === 'all' ? 'הכל' : diff}
                 </button>
-              );
-            })}
+              ))}
+            </div>
+
+            <button
+              onClick={() => {
+                const rand = Math.floor(Math.random() * financialQuestions.length);
+                setActiveQIndex(rand);
+                setIsAnsDone(false);
+                setSelectedAns(null);
+              }}
+              className="text-xs font-bold bg-emerald-50 text-emerald-800 hover:bg-emerald-100 px-3 py-1.5 rounded-xl border border-emerald-200 flex items-center gap-1.5 transition-all shadow-2xs"
+            >
+              <Shuffle className="w-3.5 h-3.5" />
+              <span>שאלה אקראית מתוך {financialQuestions.length} 🎲</span>
+            </button>
           </div>
 
-          {isAnsDone && (
-            <div className="p-5 bg-slate-50 rounded-2xl border border-slate-200 space-y-3 animate-fadeIn">
-              <div className="font-extrabold text-slate-900 text-sm">
-                {selectedAns === currentQ.correctIndex ? 'תשובה נכונה! (+15 XP) 💰' : 'לא מדויק, כדאי לזכור לחיים!'}
+          {currentQ ? (
+            <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-sm space-y-6">
+              
+              <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-3">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="bg-emerald-100 text-emerald-900 font-bold text-xs px-2.5 py-1 rounded-full">
+                    {currentQ.gradeText}
+                  </span>
+                  <span className="bg-slate-100 text-slate-700 font-semibold text-xs px-2.5 py-1 rounded-full">
+                    {currentQ.topic}
+                  </span>
+                  <span className={`font-bold text-xs px-2.5 py-1 rounded-full ${
+                    currentQ.difficulty === 'אתגר עליון'
+                      ? 'bg-rose-100 text-rose-800 border border-rose-200'
+                      : 'bg-amber-100 text-amber-900'
+                  }`}>
+                    רמה: {currentQ.difficulty}
+                  </span>
+                </div>
+                <span className="text-xs text-slate-500 font-bold bg-slate-50 px-2.5 py-1 rounded-lg border border-slate-200">
+                  שאלה {activeQIndex + 1} מתוך {financialQuestions.length}
+                </span>
               </div>
-              <p className="text-xs text-slate-700 leading-relaxed">
-                {currentQ.explanation}
-              </p>
-              {currentQ.shiraTip && (
-                <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 text-xs text-amber-950 flex items-start gap-2">
-                  <span className="text-base shrink-0">👩‍🏫</span>
-                  <span>{currentQ.shiraTip}</span>
+
+              {/* Scenario */}
+              {currentQ.scenario && (
+                <div className="bg-emerald-50/60 border-r-4 border-emerald-500 p-4 rounded-xl text-slate-800 text-xs sm:text-sm leading-relaxed">
+                  <p className="font-bold text-xs text-emerald-800 mb-1">מקרה מעשי לניתוח:</p>
+                  <p>{currentQ.scenario}</p>
                 </div>
               )}
-              <div className="flex justify-end pt-1">
-                <button
-                  onClick={nextQuizQ}
-                  className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-5 py-2.5 rounded-xl transition-all text-xs flex items-center gap-1.5"
-                >
-                  <span>לשאלה הפיננסית הבאה</span>
-                  <ArrowLeft className="w-4 h-4" />
-                </button>
+
+              <div className="text-base sm:text-lg font-bold text-slate-900 leading-relaxed">
+                {currentQ.question}
               </div>
+
+              <div className="space-y-2.5 pt-1">
+                {currentQ.options.map((opt, idx) => {
+                  const isSelected = selectedAns === idx;
+                  const isCorrect = idx === currentQ.correctIndex;
+                  let style = "border-slate-200 hover:border-emerald-500 hover:bg-slate-50 text-slate-800";
+                  if (isAnsDone) {
+                    if (isCorrect) style = "bg-emerald-500 text-white font-bold border-emerald-500";
+                    else if (isSelected) style = "bg-rose-500 text-white border-rose-500";
+                    else style = "opacity-50 border-slate-200";
+                  }
+                  return (
+                    <button
+                      key={idx}
+                      disabled={isAnsDone}
+                      onClick={() => handleSelectQuiz(idx)}
+                      className={`w-full p-4 rounded-2xl border text-right text-xs sm:text-sm leading-relaxed transition-all ${style}`}
+                    >
+                      {opt}
+                    </button>
+                  );
+                })}
+              </div>
+
+              {isAnsDone && (
+                <div className="p-5 bg-slate-50 rounded-2xl border border-slate-200 space-y-3 animate-fadeIn">
+                  <div className="font-extrabold text-slate-900 text-sm">
+                    {selectedAns === currentQ.correctIndex ? 'תשובה נכונה! (+15 XP) 💰' : 'לא מדויק, כדאי לזכור לחיים!'}
+                  </div>
+                  <p className="text-xs sm:text-sm text-slate-700 leading-relaxed">
+                    {currentQ.explanation}
+                  </p>
+                  {currentQ.shiraTip && (
+                    <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 text-xs sm:text-sm text-amber-950 flex items-start gap-2">
+                      <span className="text-base shrink-0">👩‍🏫</span>
+                      <div>
+                        <span className="font-bold text-amber-900 block mb-0.5">הטיפ של שירה:</span>
+                        <p className="text-amber-900/90 leading-relaxed">{currentQ.shiraTip}</p>
+                      </div>
+                    </div>
+                  )}
+                  <div className="flex justify-end pt-1">
+                    <button
+                      onClick={nextQuizQ}
+                      className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-5 py-2.5 rounded-xl transition-all text-xs flex items-center gap-1.5 shadow-xs"
+                    >
+                      <span>לשאלה הפיננסית הבאה</span>
+                      <ArrowLeft className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+              )}
+
+            </div>
+          ) : (
+            <div className="bg-white p-8 rounded-2xl border border-slate-200 text-center text-slate-500 text-sm">
+              לא נמצאו שאלות בסינון זה. נסו לבחור רמת קושי אחרת.
             </div>
           )}
 

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Award, Flame, BookOpen, Calculator, PenTool, CheckCircle2 } from 'lucide-react';
+import { Award, Flame, BookOpen, Calculator, PenTool, CheckCircle2, Database } from 'lucide-react';
 import { UserStats } from '../types';
 
 interface NavbarProps {
@@ -87,6 +87,17 @@ export const Navbar: React.FC<NavbarProps> = ({
               חינוך פיננסי
             </button>
             <button
+              onClick={() => setCurrentTab('bank')}
+              className={`px-3 py-2 rounded-lg text-sm font-semibold transition-all flex items-center gap-1.5 ${
+                currentTab === 'bank'
+                  ? 'bg-indigo-100 text-indigo-900 shadow-sm font-black'
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+              }`}
+            >
+              <Database className="w-4 h-4 text-indigo-600" />
+              בנק 2,500+ שאלות
+            </button>
+            <button
               onClick={() => setCurrentTab('exam')}
               className={`px-3 py-2 rounded-lg text-sm font-semibold transition-all flex items-center gap-1.5 ${
                 currentTab === 'exam'
@@ -168,6 +179,12 @@ export const Navbar: React.FC<NavbarProps> = ({
             className={`px-2 py-1 rounded text-xs font-bold whitespace-nowrap ${currentTab === 'finance' ? 'text-emerald-700' : 'text-slate-600'}`}
           >
             פיננסי
+          </button>
+          <button
+            onClick={() => setCurrentTab('bank')}
+            className={`px-2 py-1 rounded text-xs font-bold whitespace-nowrap ${currentTab === 'bank' ? 'text-indigo-700 font-black' : 'text-slate-600'}`}
+          >
+            בנק 2,500+
           </button>
           <button
             onClick={() => setCurrentTab('exam')}
