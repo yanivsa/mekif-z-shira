@@ -30,7 +30,7 @@ export const ExamSimulator: React.FC<ExamSimulatorProps> = ({
   // Setup state
   const [examStatus, setExamStatus] = useState<'setup' | 'active' | 'finished'>('setup');
   const [selectedSubject, setSelectedSubject] = useState<'all' | 'civics' | 'finance'>('all');
-  const [selectedGrade, setSelectedGrade] = useState<'all' | 'junior' | 'senior'>('all');
+  const [selectedGrade, setSelectedGrade] = useState<string>('all');
   const [selectedDifficulty, setSelectedDifficulty] = useState<string>('all');
   const [questionCount, setQuestionCount] = useState<number>(10);
   const [timeLimitMinutes, setTimeLimitMinutes] = useState<number>(15);
@@ -63,9 +63,13 @@ export const ExamSimulator: React.FC<ExamSimulatorProps> = ({
   }, [examStatus, secondsRemaining]);
 
   // Available questions in current setup pool
+  const isSeniorOrJuniorOnly = ['junior', 'senior'].includes(selectedGrade);
+  const isExactGrade = !['all', 'junior', 'senior'].includes(selectedGrade);
+
   const currentPool = getFilteredQuestions({
     subject: selectedSubject,
-    gradeLevel: selectedGrade,
+    gradeLevel: isSeniorOrJuniorOnly ? (selectedGrade as any) : undefined,
+    exactGrade: isExactGrade ? selectedGrade : undefined,
     difficulty: selectedDifficulty as any
   });
 
@@ -204,41 +208,42 @@ export const ExamSimulator: React.FC<ExamSimulatorProps> = ({
 
             {/* Grade level selector */}
             <div className="space-y-2">
-              <label className="font-bold text-slate-800 block">שכבת גיל / שלב חינוך:</label>
-              <div className="grid grid-cols-3 gap-2">
-                <button
-                  type="button"
-                  onClick={() => setSelectedGrade('all')}
-                  className={`p-2.5 rounded-xl border text-xs font-bold transition-all ${
-                    selectedGrade === 'all'
-                      ? 'bg-indigo-600 text-white border-indigo-600 shadow-xs'
-                      : 'bg-slate-50 text-slate-700 hover:bg-slate-100'
-                  }`}
-                >
-                  כל השכבות
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setSelectedGrade('junior')}
-                  className={`p-2.5 rounded-xl border text-xs font-bold transition-all ${
-                    selectedGrade === 'junior'
-                      ? 'bg-indigo-600 text-white border-indigo-600 shadow-xs'
-                      : 'bg-slate-50 text-slate-700 hover:bg-slate-100'
-                  }`}
-                >
-                  חט״ב (ז׳–ט׳)
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setSelectedGrade('senior')}
-                  className={`p-2.5 rounded-xl border text-xs font-bold transition-all ${
-                    selectedGrade === 'senior'
-                      ? 'bg-indigo-600 text-white border-indigo-600 shadow-xs'
-                      : 'bg-slate-50 text-slate-700 hover:bg-slate-100'
-                  }`}
-                >
-                  חט״ע ובגרות (י׳–י״ב)
-                </button>
+              <div className="flex items-center justify-between">
+                <label className="font-bold text-slate-800 dark:text-slate-200 block">
+                  שכבת גיל / כיתה:
+                </label>
+                <span className="text-xs text-brand-600 dark:text-brand-400 font-semibold">
+                  {currentPool.length} שאלות זמינות
+                </span>
+              </div>
+              <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
+                {[
+                  { id: 'all', label: 'כל השכבות' },
+                  { id: 'ז׳', label: 'כיתה ז׳' },
+                  { id: 'ח׳', label: 'כיתה ח׳' },
+                  { id: 'ט׳', label: 'כיתה ט׳' },
+                  { id: 'י׳', label: 'כיתה י׳' },
+                  { id: 'י״א', label: 'כיתה י״א' },
+                  { id: 'י״ב', label: 'כיתה י״ב' },
+                  { id: 'junior', label: 'חט״ב (ז׳–ט׳)' },
+                  { id: 'senior', label: 'חט״ע (י׳–י״ב)' }
+                ].map((g) => (
+                  <button
+                    key={g.id}
+                    type="button"
+                    onClick={() => {
+                      sound.playClick();
+                      setSelectedGrade(g.id);
+                    }}
+                    className={`p-2.5 rounded-xl border text-xs font-bold transition-all ${
+                      selectedGrade === g.id
+                        ? 'bg-indigo-600 text-white border-indigo-600 shadow-xs ring-2 ring-indigo-500/20'
+                        : 'bg-slate-50 dark:bg-zinc-800 text-slate-700 dark:text-slate-200 hover:bg-slate-100 border-slate-200 dark:border-zinc-700'
+                    }`}
+                  >
+                    {g.label}
+                  </button>
+                ))}
               </div>
             </div>
 

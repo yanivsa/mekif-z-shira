@@ -38,18 +38,20 @@ export const FinancialHub: React.FC<FinancialHubProps> = ({ onAddXP }) => {
   const [years, setYears] = useState<number>(10);
   const annualRate = 0.07; // 7% standard market index average
 
-  // Quiz state with 1,320+ questions
-  const allFinancePool = [
-    ...ALL_QUESTIONS.filter(q => q.subject === 'finance'),
-    ...FULL_FINANCE_BANK
-  ];
+  // Quiz state with 2,700+ questions
+  const [selectedGrade, setSelectedGrade] = useState<string>('all');
   const [selectedTopic, setSelectedTopic] = useState<string>('all');
   const [selectedDifficulty, setSelectedDifficulty] = useState<string>('all');
   const [activeQIndex, setActiveQIndex] = useState(0);
   const [selectedAns, setSelectedAns] = useState<number | null>(null);
   const [isAnsDone, setIsAnsDone] = useState(false);
 
-  const financialQuestions = allFinancePool.filter(q => {
+  const financialQuestions = FULL_FINANCE_BANK.filter(q => {
+    if (selectedGrade !== 'all') {
+      if (selectedGrade === 'junior' && q.gradeLevel !== 'junior') return false;
+      if (selectedGrade === 'senior' && q.gradeLevel !== 'senior') return false;
+      if (!['junior', 'senior'].includes(selectedGrade) && !q.gradeText.includes(selectedGrade)) return false;
+    }
     if (selectedTopic !== 'all' && q.topic !== selectedTopic) return false;
     if (selectedDifficulty !== 'all' && q.difficulty !== selectedDifficulty) return false;
     return true;
@@ -456,38 +458,77 @@ export const FinancialHub: React.FC<FinancialHubProps> = ({ onAddXP }) => {
         <div className="space-y-4 animate-fadeIn">
           
           {/* Quick Quiz Filters */}
-          <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs flex flex-wrap items-center justify-between gap-3">
+          <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs space-y-3">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <span className="text-xs font-bold text-slate-500">שכבת לימוד / כיתה:</span>
+              <span className="text-xs text-emerald-600 font-bold">
+                {financialQuestions.length} שאלות פיננסיות זמינות
+              </span>
+            </div>
             <div className="flex flex-wrap items-center gap-1.5">
-              <span className="text-xs font-bold text-slate-500 ml-1">רמת קושי:</span>
-              {['all', 'בינוני', 'מתקדם', 'בגרות', 'אתגר עליון'].map((diff) => (
+              {[
+                { id: 'all', label: 'כל השכבות' },
+                { id: 'ז׳', label: 'כיתה ז׳' },
+                { id: 'ח׳', label: 'כיתה ח׳' },
+                { id: 'ט׳', label: 'כיתה ט׳' },
+                { id: 'י׳', label: 'כיתה י׳' },
+                { id: 'י״א', label: 'כיתה י״א' },
+                { id: 'י״ב', label: 'כיתה י״ב' }
+              ].map((g) => (
                 <button
-                  key={diff}
-                  onClick={() => { setSelectedDifficulty(diff); setActiveQIndex(0); setIsAnsDone(false); setSelectedAns(null); }}
-                  className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all ${
-                    selectedDifficulty === diff
-                      ? diff === 'אתגר עליון'
-                        ? 'bg-rose-600 text-white'
-                        : 'bg-emerald-600 text-white'
-                      : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                  key={g.id}
+                  onClick={() => {
+                    sound.playClick();
+                    setSelectedGrade(g.id);
+                    setActiveQIndex(0);
+                    setIsAnsDone(false);
+                    setSelectedAns(null);
+                  }}
+                  className={`px-3 py-1 rounded-xl text-xs font-bold transition-all ${
+                    selectedGrade === g.id
+                      ? 'bg-emerald-600 text-white shadow-xs'
+                      : 'bg-slate-100 dark:bg-zinc-800 text-slate-700 dark:text-slate-200 hover:bg-slate-200'
                   }`}
                 >
-                  {diff === 'all' ? 'הכל' : diff}
+                  {g.label}
                 </button>
               ))}
             </div>
+            
+            <div className="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-slate-100 dark:border-zinc-800">
+              <div className="flex flex-wrap items-center gap-1.5">
+                <span className="text-xs font-bold text-slate-500 ml-1">רמת קושי:</span>
+                {['all', 'בינוני', 'מתקדם', 'בגרות', 'אתגר עליון'].map((diff) => (
+                  <button
+                    key={diff}
+                    onClick={() => { sound.playClick(); setSelectedDifficulty(diff); setActiveQIndex(0); setIsAnsDone(false); setSelectedAns(null); }}
+                    className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all ${
+                      selectedDifficulty === diff
+                        ? diff === 'אתגר עליון'
+                          ? 'bg-rose-600 text-white'
+                          : 'bg-emerald-600 text-white'
+                        : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                    }`}
+                  >
+                    {diff === 'all' ? 'הכל' : diff}
+                  </button>
+                ))}
+              </div>
 
-            <button
-              onClick={() => {
-                const rand = Math.floor(Math.random() * financialQuestions.length);
-                setActiveQIndex(rand);
-                setIsAnsDone(false);
-                setSelectedAns(null);
-              }}
-              className="text-xs font-bold bg-emerald-50 text-emerald-800 hover:bg-emerald-100 px-3 py-1.5 rounded-xl border border-emerald-200 flex items-center gap-1.5 transition-all shadow-2xs"
-            >
-              <Shuffle className="w-3.5 h-3.5" />
-              <span>שאלה אקראית מתוך {financialQuestions.length} 🎲</span>
-            </button>
+              <button
+                onClick={() => {
+                  sound.playClick();
+                  const rand = Math.floor(Math.random() * financialQuestions.length);
+                  setActiveQIndex(rand);
+                  setIsAnsDone(false);
+                  setSelectedAns(null);
+                }}
+                className="text-xs font-bold bg-emerald-50 text-emerald-800 hover:bg-emerald-100 px-3 py-1.5 rounded-xl border border-emerald-200 flex items-center gap-1.5 transition-all shadow-2xs"
+              >
+                <Shuffle className="w-3.5 h-3.5" />
+                <span>שאלה אקראית 🎲</span>
+              </button>
+            </div>
           </div>
 
           {currentQ ? (

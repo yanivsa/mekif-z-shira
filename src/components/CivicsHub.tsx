@@ -12,7 +12,7 @@ interface CivicsHubProps {
 }
 
 export const CivicsHub: React.FC<CivicsHubProps> = ({ onAddXP, onNavigateToTsehes }) => {
-  const [selectedGrade, setSelectedGrade] = useState<'all' | 'junior' | 'senior'>('all');
+  const [selectedGrade, setSelectedGrade] = useState<string>('all');
   const [selectedTopic, setSelectedTopic] = useState<string>('all');
   const [selectedDifficulty, setSelectedDifficulty] = useState<string>('all');
   const [activeQuestionIndex, setActiveQuestionIndex] = useState<number>(0);
@@ -20,15 +20,13 @@ export const CivicsHub: React.FC<CivicsHubProps> = ({ onAddXP, onNavigateToTsehe
   const [isAnswered, setIsAnswered] = useState<boolean>(false);
   const [showExplanation, setShowExplanation] = useState<boolean>(false);
 
-  // Combine curated and full bank
-  const allCivicsPool = [
-    ...ALL_QUESTIONS.filter(q => q.subject === 'civics'),
-    ...FULL_CIVICS_BANK
-  ];
-
   // Filter civics questions
-  const civicsQuestions = allCivicsPool.filter((q) => {
-    if (selectedGrade !== 'all' && q.gradeLevel !== selectedGrade) return false;
+  const civicsQuestions = FULL_CIVICS_BANK.filter((q) => {
+    if (selectedGrade !== 'all') {
+      if (selectedGrade === 'junior' && q.gradeLevel !== 'junior') return false;
+      if (selectedGrade === 'senior' && q.gradeLevel !== 'senior') return false;
+      if (!['junior', 'senior'].includes(selectedGrade) && !q.gradeText.includes(selectedGrade)) return false;
+    }
     if (selectedTopic !== 'all' && q.topic !== selectedTopic) return false;
     if (selectedDifficulty !== 'all' && q.difficulty !== selectedDifficulty) return false;
     return true;
@@ -37,7 +35,7 @@ export const CivicsHub: React.FC<CivicsHubProps> = ({ onAddXP, onNavigateToTsehe
   const currentQ: Question | undefined = civicsQuestions[activeQuestionIndex];
 
   // Topics list for filter
-  const topics = Array.from(new Set(allCivicsPool.map(q => q.topic)));
+  const topics = Array.from(new Set(FULL_CIVICS_BANK.map(q => q.topic)));
 
   const handleSelectOption = (idx: number) => {
     if (isAnswered) return;
@@ -98,38 +96,43 @@ export const CivicsHub: React.FC<CivicsHubProps> = ({ onAddXP, onNavigateToTsehe
       <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-xs space-y-4">
         
         {/* Grade tabs */}
-        <div className="flex flex-wrap items-center gap-2">
-          <span className="text-xs font-bold text-slate-500 ml-2">שכבת גיל:</span>
-          <button
-            onClick={() => { setSelectedGrade('all'); setActiveQuestionIndex(0); setIsAnswered(false); }}
-            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
-              selectedGrade === 'all'
-                ? 'bg-civics text-white shadow-xs'
-                : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
-            }`}
-          >
-            כל השכבות
-          </button>
-          <button
-            onClick={() => { setSelectedGrade('junior'); setActiveQuestionIndex(0); setIsAnswered(false); }}
-            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
-              selectedGrade === 'junior'
-                ? 'bg-civics text-white shadow-xs'
-                : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
-            }`}
-          >
-            חטיבת ביניים (כיתות ז׳-ט׳)
-          </button>
-          <button
-            onClick={() => { setSelectedGrade('senior'); setActiveQuestionIndex(0); setIsAnswered(false); }}
-            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
-              selectedGrade === 'senior'
-                ? 'bg-civics text-white shadow-xs'
-                : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
-            }`}
-          >
-            חטיבה עליונה (הכנה לבגרות)
-          </button>
+        <div className="space-y-2">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-bold text-slate-500">שכבת לימוד / כיתה:</span>
+            <span className="text-xs text-civics font-bold">
+              {civicsQuestions.length} שאלות במאגר
+            </span>
+          </div>
+          <div className="flex flex-wrap items-center gap-1.5">
+            {[
+              { id: 'all', label: 'כל השכבות' },
+              { id: 'ז׳', label: 'כיתה ז׳' },
+              { id: 'ח׳', label: 'כיתה ח׳' },
+              { id: 'ט׳', label: 'כיתה ט׳' },
+              { id: 'י׳', label: 'כיתה י׳' },
+              { id: 'י״א', label: 'כיתה י״א' },
+              { id: 'י״ב', label: 'כיתה י״ב' },
+              { id: 'junior', label: 'חט״ב (ז׳–ט׳)' },
+              { id: 'senior', label: 'חט״ע (י׳–י״ב)' }
+            ].map((g) => (
+              <button
+                key={g.id}
+                onClick={() => {
+                  sound.playClick();
+                  setSelectedGrade(g.id);
+                  setActiveQuestionIndex(0);
+                  setIsAnswered(false);
+                }}
+                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
+                  selectedGrade === g.id
+                    ? 'bg-civics text-white shadow-xs'
+                    : 'bg-slate-100 dark:bg-zinc-800 text-slate-700 dark:text-slate-200 hover:bg-slate-200'
+                }`}
+              >
+                {g.label}
+              </button>
+            ))}
+          </div>
         </div>
 
         {/* Topic tabs */}
