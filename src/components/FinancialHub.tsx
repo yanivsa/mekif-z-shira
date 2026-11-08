@@ -22,7 +22,8 @@ import {
   Sparkles,
   Clock,
   X,
-  ChevronLeft
+  ChevronLeft,
+  Compass
 } from 'lucide-react';
 import { EXTERNAL_TOOLS } from '../data/externalTools';
 import { ALL_QUESTIONS } from '../data/allQuestions';
@@ -254,6 +255,64 @@ export const FinancialHub: React.FC<FinancialHubProps> = ({ onAddXP, initialTab 
             <Sparkles className="w-4 h-4 text-amber-300" />
             <span>תרגול שאלות פיננסיות 🎯</span>
           </button>
+        </div>
+      </div>
+
+      {/* Official Ministry Financial Education Portal Ribbon */}
+      <div className="bg-gradient-to-r from-emerald-50 via-teal-50 to-slate-50 border border-emerald-200 rounded-3xl p-4 sm:p-5 shadow-xs space-y-3">
+        <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
+          <div className="flex items-start gap-3">
+            <span className="p-2.5 bg-emerald-600 text-white rounded-2xl shadow-xs shrink-0 mt-0.5">
+              <Compass className="w-5 h-5" />
+            </span>
+            <div>
+              <div className="text-sm sm:text-base font-black text-slate-900 flex flex-wrap items-center gap-2">
+                <span>פורטל משרד החינוך – חינוך פיננסי לחטיבת הביניים (4 הצירים)</span>
+                <span className="text-[11px] bg-emerald-100 text-emerald-900 font-extrabold px-2.5 py-0.5 rounded-full border border-emerald-200">
+                  תוכנית רשמית ספירלית
+                </span>
+              </div>
+              <p className="text-xs sm:text-sm text-slate-600 mt-0.5 leading-relaxed">
+                חומרי הלמידה והשאלות מבוססים על 4 הצירים הספירליים של משרד החינוך: צרכנות מודעת ("אושר על המדף"), עולם הכסף והבנקאות, שוק העבודה וזכויות עובדים, ותכנון תקציב וחיסכון לעתיד.
+              </p>
+            </div>
+          </div>
+
+          <a
+            href="https://pop.education.gov.il/tchumey_daat/financial-education/junior-high/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1.5 bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold px-3.5 py-2 rounded-xl shadow-2xs transition-all shrink-0 w-full lg:w-auto justify-center"
+          >
+            <span>פתח פורטל חינוך פיננסי במשרד החינוך</span>
+            <ExternalLink className="w-3.5 h-3.5 text-white" />
+          </a>
+        </div>
+
+        {/* 4 Spiral Axes interactive badges */}
+        <div className="flex items-center gap-2 overflow-x-auto pb-1 text-xs font-bold text-slate-700 scrollbar-none pt-1 border-t border-emerald-100">
+          <span className="shrink-0 text-emerald-800 font-black flex items-center gap-1">
+            <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" /> 4 צירי הליבה:
+          </span>
+          {[
+            { name: "ציר 1: צרכנות מודעת וביקורתית", desc: "אושר על המדף, מניפולציות שיווקיות וביטול עסקה", topic: "צרכנות נבונה וביקורתית" },
+            { name: "ציר 2: עולם הכסף והבנקאות", desc: "מוסכמה חברתית, אמצעי תשלום, דביט ואינפלציה", topic: "עולם הכסף והבנקאות" },
+            { name: "ציר 3: שוק העבודה וזכויות עובדים", desc: "זכויות נוער 2025–2026, שכר מינימום ופענוח תלוש", topic: "שוק העבודה וזכויות עובדים" },
+            { name: "ציר 4: תקציב, חיסכון והשקעות", desc: "מודל SMART, ריבית דריבית, חיסכון לכל ילד ו-S&P500", topic: "חיסכון והשקעות" }
+          ].map((axis, aIdx) => (
+            <button
+              key={aIdx}
+              onClick={() => {
+                sound.playClick();
+                setSelectedTopic(axis.topic);
+                setActiveTab('quiz');
+              }}
+              title={axis.desc}
+              className="shrink-0 bg-white hover:bg-emerald-50 border border-slate-200 hover:border-emerald-300 px-2.5 py-1 rounded-lg text-slate-800 text-[11px] font-semibold whitespace-nowrap shadow-2xs transition-all flex items-center gap-1"
+            >
+              <span>{axis.name}</span>
+            </button>
+          ))}
         </div>
       </div>
 
@@ -895,12 +954,14 @@ export const FinancialHub: React.FC<FinancialHubProps> = ({ onAddXP, initialTab 
               <span className="text-xs font-bold text-slate-500 ml-1">נושא ממוקד:</span>
               {[
                 { id: 'all', label: 'הכל' },
+                { id: 'צרכנות נבונה וביקורתית', label: 'צרכנות נבונה (ציר 1)' },
+                { id: 'עולם הכסף והבנקאות', label: 'כסף ובנקאות (ציר 2)' },
+                { id: 'שוק העבודה וזכויות עובדים', label: 'זכויות עבודה (ציר 3)' },
+                { id: 'חיסכון והשקעות', label: 'חיסכון והשקעות (ציר 4)' },
                 { id: 'זכויות נוער עובד', label: 'זכויות נוער עובד' },
-                { id: 'בנקאות וחיסכון', label: 'בנקאות וחיסכון' },
-                { id: 'תלוש שכר ומיסוי', label: 'תלוש שכר ומיסוי' },
-                { id: 'שוק ההון וריבית דריבית', label: 'שוק ההון וריבית' },
-                { id: 'תקציב וצרכנות', label: 'תקציב וצרכנות' },
-                { id: 'הונאות וביטוח', label: 'הונאות סייבר וביטוח' }
+                { id: 'פענוח תלוש שכר ומיסוי', label: 'תלוש שכר ומיסוי' },
+                { id: 'שוק ההון וחיסכון ארוך טווח', label: 'שוק ההון ו-S&P 500' },
+                { id: 'אבטחת מידע וסייבר פיננסי', label: 'הגנת סייבר ופישינג' }
               ].map((top) => (
                 <button
                   key={top.id}
@@ -991,6 +1052,11 @@ export const FinancialHub: React.FC<FinancialHubProps> = ({ onAddXP, initialTab 
                   }`}>
                     רמה: {currentQ.difficulty}
                   </span>
+                  {currentQ.source && (
+                    <span className="bg-emerald-50 text-emerald-900 border border-emerald-200 font-bold text-[11px] px-2.5 py-0.5 rounded-full flex items-center gap-1">
+                      <span>📖 {currentQ.source}</span>
+                    </span>
+                  )}
                 </div>
                 <span className="text-xs text-slate-500 font-bold bg-slate-50 px-2.5 py-1 rounded-lg border border-slate-200">
                   שאלה {activeQIndex + 1} מתוך {financialQuestions.length}

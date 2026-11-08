@@ -1,5 +1,18 @@
 import React, { useState } from 'react';
-import { BookOpen, CheckCircle2, XCircle, Lightbulb, ArrowLeft, PenTool, Sparkles, Award, Shuffle } from 'lucide-react';
+import { 
+  BookOpen, 
+  CheckCircle2, 
+  XCircle, 
+  Lightbulb, 
+  ArrowLeft, 
+  PenTool, 
+  Sparkles, 
+  Award, 
+  Shuffle,
+  ExternalLink,
+  Compass,
+  ShieldCheck
+} from 'lucide-react';
 import { ALL_QUESTIONS } from '../data/allQuestions';
 import { FULL_CIVICS_BANK } from '../data/questionBank';
 import { Question } from '../types';
@@ -118,6 +131,76 @@ export const CivicsHub: React.FC<CivicsHubProps> = ({ onAddXP, onNavigateToTsehe
           <PenTool className="w-4 h-4" />
           <span>עבור למאמן צה״ס לבגרות ➔</span>
         </button>
+      </div>
+
+      {/* Official Ministry Portals & Syllabi Banner */}
+      <div className="bg-gradient-to-r from-purple-50 via-indigo-50 to-slate-50 border border-purple-200 rounded-3xl p-4 sm:p-5 shadow-xs space-y-3">
+        <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
+          <div className="flex items-start gap-3">
+            <span className="p-2.5 bg-civics text-white rounded-2xl shadow-xs shrink-0 mt-0.5">
+              <Compass className="w-5 h-5" />
+            </span>
+            <div>
+              <div className="text-sm sm:text-base font-black text-slate-900 flex flex-wrap items-center gap-2">
+                <span>מערך תוכניות הלימודים הרשמיות של משרד החינוך</span>
+                <span className="text-[11px] bg-purple-100 text-purple-900 font-extrabold px-2.5 py-0.5 rounded-full border border-purple-200">
+                  רמת אתגר גבוהה לבגרות
+                </span>
+              </div>
+              <p className="text-xs sm:text-sm text-slate-600 mt-0.5 leading-relaxed">
+                השאלות נבנו וכוילו במדויק מתוך חומרי הלימוד הרשמיים בפורטל עובדי הוראה של משרד החינוך, ברמת קושי עילאית המכינה להצטיינות במבחנים ובשאלון 034281.
+              </p>
+            </div>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-2 shrink-0 w-full lg:w-auto">
+            <a
+              href="https://pop.education.gov.il/tchumey_daat/citizenship/junior-high/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 bg-white border border-purple-300 text-purple-900 hover:bg-purple-100 text-xs font-bold px-3 py-2 rounded-xl shadow-2xs transition-all flex-1 lg:flex-initial justify-center"
+            >
+              <span>פורטל אזרחות חט״ב (ז׳-ט׳)</span>
+              <ExternalLink className="w-3.5 h-3.5 text-purple-600" />
+            </a>
+            <a
+              href="https://pop.education.gov.il/tchumey_daat/citizenship/citizenship-high-school/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 bg-civics hover:bg-civics-dark text-white text-xs font-bold px-3.5 py-2 rounded-xl shadow-2xs transition-all flex-1 lg:flex-initial justify-center"
+            >
+              <span>שאלון בגרות 034281 חט״ע</span>
+              <ExternalLink className="w-3.5 h-3.5 text-white" />
+            </a>
+          </div>
+        </div>
+
+        {/* 7 Mandatory Units & Core Bagrut Skills Ribbon */}
+        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 text-xs font-bold text-slate-700 scrollbar-none pt-1 border-t border-purple-100">
+          <span className="shrink-0 text-purple-700 font-black flex items-center gap-1">
+            <ShieldCheck className="w-3.5 h-3.5" /> יחידות הליבה (משרד החינוך):
+          </span>
+          {[
+            "מעמד האזרח וקיום מדינה",
+            "מגילת העצמאות והשוויון",
+            "הפרדת רשויות ואיזונים",
+            "סמלי המדינה וחוק השבות",
+            "השלטון המקומי וחוקי עזר",
+            "סובלנות ומאבק בשיימינג",
+            "פסקת ההגבלה (סעיף 8)",
+            "סוגי עבריינות ודגל שחור",
+            "דמוקרטיה מתגוננת (סעיף 7א)",
+            "סמכות שיורית של הממשלה (32)",
+            "מודל צה״ס למענה בבגרות"
+          ].map((unit, uIdx) => (
+            <span 
+              key={uIdx} 
+              className="shrink-0 bg-white border border-slate-200 px-2.5 py-1 rounded-lg text-slate-800 text-[11px] font-semibold whitespace-nowrap shadow-2xs"
+            >
+              {unit}
+            </span>
+          ))}
+        </div>
       </div>
 
       {/* Filter Bar */}
@@ -239,6 +322,11 @@ export const CivicsHub: React.FC<CivicsHubProps> = ({ onAddXP, onNavigateToTsehe
               }`}>
                 רמה: {currentQ.difficulty}
               </span>
+              {currentQ.source && (
+                <span className="bg-indigo-50 text-indigo-900 border border-indigo-200 font-bold text-[11px] px-2.5 py-1 rounded-full flex items-center gap-1">
+                  <span>📖 {currentQ.source}</span>
+                </span>
+              )}
             </div>
 
             <div className="text-xs text-slate-500 font-bold bg-slate-50 px-2.5 py-1 rounded-lg border border-slate-200">
