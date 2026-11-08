@@ -12,21 +12,41 @@ import {
   CreditCard,
   Building2,
   Lightbulb,
-  Shuffle
+  Shuffle,
+  BookOpen,
+  Download,
+  Copy,
+  Check,
+  Search,
+  FileText,
+  Sparkles,
+  Clock,
+  X,
+  ChevronLeft
 } from 'lucide-react';
 import { EXTERNAL_TOOLS } from '../data/externalTools';
 import { ALL_QUESTIONS } from '../data/allQuestions';
 import { FULL_FINANCE_BANK } from '../data/questionBank';
+import { FINANCIAL_LIBRARY, FinancialGuide } from '../data/financialLibrary';
 import { Question } from '../types';
 import { fireSmallSuccessConfetti } from '../utils/confetti';
 import { sound } from '../utils/soundEngine';
 
 interface FinancialHubProps {
   onAddXP: (amount: number) => void;
+  initialTab?: 'library' | 'rights' | 'tools' | 'calculator' | 'quiz';
 }
 
-export const FinancialHub: React.FC<FinancialHubProps> = ({ onAddXP }) => {
-  const [activeTab, setActiveTab] = useState<'rights' | 'tools' | 'calculator' | 'quiz'>('rights');
+export const FinancialHub: React.FC<FinancialHubProps> = ({ onAddXP, initialTab = 'library' }) => {
+  const [activeTab, setActiveTab] = useState<'library' | 'rights' | 'tools' | 'calculator' | 'quiz'>(initialTab);
+
+  // Library state
+  const [searchQuery, setSearchQuery] = useState<string>('');
+  const [selectedLibraryCategory, setSelectedLibraryCategory] = useState<string>('all');
+  const [selectedLibraryGrade, setSelectedLibraryGrade] = useState<string>('all');
+  const [activeGuideModal, setActiveGuideModal] = useState<FinancialGuide | null>(null);
+  const [copiedGuideId, setCopiedGuideId] = useState<string | null>(null);
+  const [checkedItems, setCheckedItems] = useState<Record<string, boolean>>({});
 
   // Quick salary estimator state
   const [ageGroup, setAgeGroup] = useState<'under16' | '16to17' | '17to18'>('16to17');
@@ -48,6 +68,25 @@ export const FinancialHub: React.FC<FinancialHubProps> = ({ onAddXP }) => {
   const [attemptsCount, setAttemptsCount] = useState<number>(0);
   const [wrongAttempts, setWrongAttempts] = useState<number[]>([]);
   const [showHint, setShowHint] = useState<boolean>(false);
+
+  // Filtered library guides
+  const filteredGuides = FINANCIAL_LIBRARY.filter(guide => {
+    if (selectedLibraryCategory !== 'all' && guide.category !== selectedLibraryCategory) return false;
+    if (selectedLibraryGrade !== 'all') {
+      if (selectedLibraryGrade === 'junior' && guide.gradeLevel === 'senior') return false;
+      if (selectedLibraryGrade === 'senior' && guide.gradeLevel === 'junior') return false;
+    }
+    if (searchQuery.trim() !== '') {
+      const q = searchQuery.toLowerCase().trim();
+      const matchTitle = guide.title.toLowerCase().includes(q);
+      const matchSub = guide.subtitle.toLowerCase().includes(q);
+      const matchSummary = guide.summary.toLowerCase().includes(q);
+      const matchTopic = guide.relatedTopic.toLowerCase().includes(q);
+      const matchTakeaways = guide.keyTakeaways.some(t => t.toLowerCase().includes(q));
+      if (!matchTitle && !matchSub && !matchSummary && !matchTopic && !matchTakeaways) return false;
+    }
+    return true;
+  });
 
   const financialQuestions = FULL_FINANCE_BANK.filter(q => {
     if (selectedGrade !== 'all') {
@@ -122,73 +161,386 @@ export const FinancialHub: React.FC<FinancialHubProps> = ({ onAddXP }) => {
     setActiveQIndex((prev) => (prev + 1) % financialQuestions.length);
   };
 
+  const handleCopyGuide = (guide: FinancialGuide) => {
+    const textToCopy = `${guide.title}\n${guide.subtitle}\n\nתקציר:\n${guide.summary}\n\nנקודות מפתח:\n${guide.keyTakeaways.map(t => '• ' + t).join('\n')}\n\nהטיפ של שירה:\n${guide.shiraTip}\n\nמקור: ${guide.sourceName} (${guide.sourceUrl})\nהמרחב של שירה • תיכון מקיף ז׳`;
+    navigator.clipboard.writeText(textToCopy);
+    setCopiedGuideId(guide.id);
+    sound.playClick();
+    setTimeout(() => setCopiedGuideId(null), 2500);
+  };
+
+  const handleDownloadGuide = (guide: FinancialGuide) => {
+    const markdownContent = `# ${guide.title}\n${guide.subtitle}\n\n## תקציר ומבוא\n${guide.summary}\n\n## נקודות מפתח לשינון\n${guide.keyTakeaways.map(t => '- ' + t).join('\n')}\n\n## הטיפ הפדגוגי של שירה\n> ${guide.shiraTip}\n\n` +
+      guide.sections.map(s => `### ${s.title}\n${s.paragraphs.join('\n\n')}`).join('\n\n') +
+      (guide.checklist ? `\n\n## צ'ק-ליסט מעשי לבדיקה עצמית\n${guide.checklist.map(c => `- [ ] ${c}`).join('\n')}` : '') +
+      `\n\n---\n**מקור רשמי:** ${guide.sourceName} (${guide.sourceUrl})\n**המרחב של שירה • תיכון מקיף ז׳**`;
+
+    const blob = new Blob([markdownContent], { type: 'text/markdown;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `${guide.id}.md`;
+    link.click();
+    URL.revokeObjectURL(url);
+    sound.playCorrect();
+  };
+
+  const handlePracticeTopic = (topicName: string) => {
+    sound.playClick();
+    setSelectedTopic(topicName);
+    setActiveTab('quiz');
+    setActiveQIndex(0);
+    setIsAnsDone(false);
+    setSelectedAns(null);
+    setAttemptsCount(0);
+    setWrongAttempts([]);
+    setShowHint(false);
+    setActiveGuideModal(null);
+    window.scrollTo({ top: 120, behavior: 'smooth' });
+  };
+
+  const toggleChecklistItem = (key: string) => {
+    sound.playClick();
+    setCheckedItems(prev => ({ ...prev, [key]: !prev[key] }));
+  };
+
   return (
     <div className="space-y-6 pb-12">
       
       {/* Header Banner */}
-      <div className="bg-gradient-to-r from-emerald-700 via-teal-800 to-slate-900 text-white rounded-3xl p-6 sm:p-8 shadow-lg flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
-        <div className="space-y-2 max-w-2xl">
-          <div className="inline-flex items-center gap-1.5 bg-white/10 px-3 py-1 rounded-full text-xs font-bold text-emerald-200">
-            <Coins className="w-3.5 h-3.5" />
-            <span>אוריינות פיננסית מעשית לחיים</span>
+      <div className="bg-gradient-to-r from-emerald-700 via-teal-800 to-slate-900 text-white rounded-3xl p-6 sm:p-8 shadow-lg flex flex-col md:flex-row items-start md:items-center justify-between gap-6 relative overflow-hidden">
+        <div className="space-y-3 max-w-2xl relative z-10">
+          <div className="inline-flex items-center gap-1.5 bg-white/10 backdrop-blur-xs px-3.5 py-1.5 rounded-full text-xs font-bold text-emerald-200 border border-white/10">
+            <Coins className="w-3.5 h-3.5 text-emerald-300" />
+            <span>אוריינות פיננסית מעשית לחיים • תיכון מקיף ז׳</span>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-black">מרחב חינוך פיננסי וזכויות נוער עובד</h1>
-          <p className="text-emerald-100 text-sm leading-relaxed">
-            כל מה שחשוב לדעת כשיוצאים לעבוד: שכר מינימום עדכני, הגנה מפני קנסות וניצול, בנקאות דיגיטלית, וכלים רשמיים לתכנון פיננסי נבון.
+          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-black tracking-tight">
+            מרחב חינוך פיננסי, זכויות נוער וספריית חומרים
+          </h1>
+          <p className="text-emerald-100 text-xs sm:text-sm leading-relaxed">
+            כל מה שחשוב לדעת כשיוצאים לעבוד ולחיים הבוגרים: שכר מינימום עדכני 2025–2026, פענוח תלוש שכר, בנקאות דיגיטלית, הגנה מהונאות רשת, ריבית דריבית ו-8 מדריכים מקיפים לשיעורים ולחיים.
           </p>
+          
+          {/* Quick Metrics Badges */}
+          <div className="flex flex-wrap items-center gap-2 pt-1 text-xs">
+            <span className="bg-emerald-600/60 text-white px-2.5 py-1 rounded-xl font-bold flex items-center gap-1">
+              <BookOpen className="w-3.5 h-3.5" /> 8 מדריכים בספרייה
+            </span>
+            <span className="bg-white/15 text-emerald-100 px-2.5 py-1 rounded-xl font-bold flex items-center gap-1">
+              <CheckCircle2 className="w-3.5 h-3.5" /> 2,700+ שאלות תרגול
+            </span>
+            <span className="bg-white/15 text-emerald-100 px-2.5 py-1 rounded-xl font-bold flex items-center gap-1">
+              <ShieldCheck className="w-3.5 h-3.5" /> שכר 2025–2026 מעודכן
+            </span>
+          </div>
+        </div>
+
+        <div className="flex flex-col sm:flex-row md:flex-col gap-2 w-full md:w-auto relative z-10">
+          <button
+            onClick={() => { sound.playClick(); setActiveTab('library'); }}
+            className={`px-4 py-2.5 rounded-xl font-bold text-xs sm:text-sm flex items-center justify-center gap-2 transition-all shadow-md ${
+              activeTab === 'library'
+                ? 'bg-white text-emerald-950 font-black scale-102'
+                : 'bg-emerald-600/80 hover:bg-emerald-600 text-white'
+            }`}
+          >
+            <BookOpen className="w-4 h-4 text-emerald-400" />
+            <span>פתח ספריית חומרים 📚</span>
+          </button>
+          <button
+            onClick={() => { sound.playClick(); setActiveTab('quiz'); }}
+            className="px-4 py-2.5 rounded-xl font-bold text-xs sm:text-sm bg-white/10 hover:bg-white/20 text-white border border-white/20 flex items-center justify-center gap-2 transition-all"
+          >
+            <Sparkles className="w-4 h-4 text-amber-300" />
+            <span>תרגול שאלות פיננסיות 🎯</span>
+          </button>
         </div>
       </div>
 
       {/* Tabs navigation */}
       <div className="flex flex-wrap items-center gap-2 bg-white p-2 rounded-2xl border border-slate-200 shadow-xs">
         <button
-          onClick={() => setActiveTab('rights')}
-          className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center gap-2 ${
+          onClick={() => { sound.playClick(); setActiveTab('library'); }}
+          className={`px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center gap-2 ${
+            activeTab === 'library'
+              ? 'bg-emerald-600 text-white shadow-xs'
+              : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+          }`}
+        >
+          <BookOpen className="w-4 h-4" />
+          <span>ספריית מדריכים וחומרים 📚</span>
+          <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-black ${
+            activeTab === 'library' ? 'bg-white/20 text-white' : 'bg-emerald-100 text-emerald-800'
+          }`}>
+            8
+          </span>
+        </button>
+
+        <button
+          onClick={() => { sound.playClick(); setActiveTab('rights'); }}
+          className={`px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center gap-2 ${
             activeTab === 'rights'
               ? 'bg-emerald-600 text-white shadow-xs'
               : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
           }`}
         >
           <ShieldCheck className="w-4 h-4" />
-          <span>זכויות נוער עובד</span>
+          <span>זכויות נוער עובד 🛡️</span>
         </button>
 
         <button
-          onClick={() => setActiveTab('tools')}
-          className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center gap-2 ${
-            activeTab === 'tools'
-              ? 'bg-emerald-600 text-white shadow-xs'
-              : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
-          }`}
-        >
-          <Building2 className="w-4 h-4" />
-          <span>מחשבונים וכלים רשמיים</span>
-        </button>
-
-        <button
-          onClick={() => setActiveTab('calculator')}
-          className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center gap-2 ${
-            activeTab === 'calculator'
-              ? 'bg-emerald-600 text-white shadow-xs'
-              : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
-          }`}
-        >
-          <Calculator className="w-4 h-4" />
-          <span>סימולטור שכר וריבית</span>
-        </button>
-
-        <button
-          onClick={() => setActiveTab('quiz')}
-          className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center gap-2 ${
+          onClick={() => { sound.playClick(); setActiveTab('quiz'); }}
+          className={`px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center gap-2 ${
             activeTab === 'quiz'
               ? 'bg-emerald-600 text-white shadow-xs'
               : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
           }`}
         >
           <CheckCircle2 className="w-4 h-4" />
-          <span>תרגול שאלות פיננסיות</span>
+          <span>תרגול שאלות (2,700+) ✅</span>
+        </button>
+
+        <button
+          onClick={() => { sound.playClick(); setActiveTab('calculator'); }}
+          className={`px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center gap-2 ${
+            activeTab === 'calculator'
+              ? 'bg-emerald-600 text-white shadow-xs'
+              : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+          }`}
+        >
+          <Calculator className="w-4 h-4" />
+          <span>סימולטור שכר וריבית 🧮</span>
+        </button>
+
+        <button
+          onClick={() => { sound.playClick(); setActiveTab('tools'); }}
+          className={`px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center gap-2 ${
+            activeTab === 'tools'
+              ? 'bg-emerald-600 text-white shadow-xs'
+              : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+          }`}
+        >
+          <Building2 className="w-4 h-4" />
+          <span>מחשבונים וכלים רשמיים 🏛️</span>
         </button>
       </div>
+
+      {/* TAB 0: FINANCIAL EDUCATION LIBRARY (NEW!) */}
+      {activeTab === 'library' && (
+        <div className="space-y-6 animate-fadeIn">
+          
+          {/* Library Subheader and Search Controls */}
+          <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-sm space-y-5">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="text-xl">📚</span>
+                  <h2 className="text-xl sm:text-2xl font-black text-slate-900">
+                    ספריית הידע והחומרים בחינוך פיננסי • תיכון מקיף ז׳
+                  </h2>
+                </div>
+                <p className="text-xs sm:text-sm text-slate-500 mt-1 leading-relaxed">
+                  מאגר המדריכים והחומרים המקיף שנכתב על ידי שירה עבור תלמידי מקיף ז׳. סיכומים מובנים, צ'ק-ליסטים מעשיים, טיפים לחיים ואפשרות להורדה והעתקה לשיעור.
+                </p>
+              </div>
+
+              {/* Search Bar */}
+              <div className="relative w-full md:w-72">
+                <Search className="w-4 h-4 text-slate-400 absolute right-3.5 top-3" />
+                <input
+                  type="text"
+                  placeholder="חיפוש נושא, מושג או מילת מפתח..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full pr-10 pl-4 py-2 rounded-xl border border-slate-200 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-slate-50 focus:bg-white transition-all"
+                />
+                {searchQuery && (
+                  <button 
+                    onClick={() => setSearchQuery('')}
+                    className="absolute left-3 top-2.5 text-slate-400 hover:text-slate-600"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                )}
+              </div>
+            </div>
+
+            {/* Filter pills */}
+            <div className="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-slate-100">
+              <div className="flex flex-wrap items-center gap-1.5">
+                <span className="text-xs font-bold text-slate-500 ml-1">נושא:</span>
+                {[
+                  { id: 'all', label: 'הכל (8)' },
+                  { id: 'rights', label: 'זכויות עבודה ושכר' },
+                  { id: 'banking', label: 'בנקאות ודיגיטל' },
+                  { id: 'investing', label: 'חיסכון והשקעות' },
+                  { id: 'consumerism', label: 'תקציב וצרכנות' },
+                  { id: 'security', label: 'הגנת סייבר' }
+                ].map((cat) => (
+                  <button
+                    key={cat.id}
+                    onClick={() => { sound.playClick(); setSelectedLibraryCategory(cat.id); }}
+                    className={`px-3 py-1 rounded-xl text-xs font-bold transition-all ${
+                      selectedLibraryCategory === cat.id
+                        ? 'bg-emerald-600 text-white shadow-xs'
+                        : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                    }`}
+                  >
+                    {cat.label}
+                  </button>
+                ))}
+              </div>
+
+              <div className="flex items-center gap-1.5">
+                <span className="text-xs font-bold text-slate-500 ml-1">שכבה:</span>
+                {[
+                  { id: 'all', label: 'כל השכבות' },
+                  { id: 'junior', label: 'חט״ב (ז׳–ט׳)' },
+                  { id: 'senior', label: 'חט״ע (י׳–י״ב)' }
+                ].map((g) => (
+                  <button
+                    key={g.id}
+                    onClick={() => { sound.playClick(); setSelectedLibraryGrade(g.id); }}
+                    className={`px-3 py-1 rounded-xl text-xs font-bold transition-all ${
+                      selectedLibraryGrade === g.id
+                        ? 'bg-slate-800 text-white shadow-xs'
+                        : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                    }`}
+                  >
+                    {g.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Guides Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {filteredGuides.map((guide) => {
+              const isCopied = copiedGuideId === guide.id;
+              return (
+                <div
+                  key={guide.id}
+                  className="bg-white rounded-3xl p-6 border border-slate-200 hover:border-emerald-400 shadow-sm hover:shadow-lg transition-all flex flex-col justify-between space-y-4 group"
+                >
+                  <div className="space-y-3">
+                    {/* Header Badges */}
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200">
+                          {guide.categoryLabel}
+                        </span>
+                        <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-slate-100 text-slate-600">
+                          {guide.gradeText}
+                        </span>
+                      </div>
+                      <span className="text-[11px] text-slate-400 flex items-center gap-1 font-medium">
+                        <Clock className="w-3 h-3" />
+                        <span>{guide.readTimeMinutes} דק׳ קריאה</span>
+                      </span>
+                    </div>
+
+                    {/* Titles */}
+                    <div>
+                      <h3 className="text-lg font-black text-slate-900 group-hover:text-emerald-700 transition-colors">
+                        {guide.title}
+                      </h3>
+                      <p className="text-xs text-slate-500 font-medium mt-0.5">
+                        {guide.subtitle}
+                      </p>
+                    </div>
+
+                    {/* Summary */}
+                    <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
+                      {guide.summary}
+                    </p>
+
+                    {/* Key takeaways bullet points */}
+                    <div className="bg-slate-50 rounded-2xl p-3.5 border border-slate-100 space-y-1.5">
+                      <span className="text-[11px] font-bold text-slate-700 block">נקודות מפתח לשינון:</span>
+                      {guide.keyTakeaways.slice(0, 3).map((takeaway, idx) => (
+                        <div key={idx} className="flex items-start gap-1.5 text-xs text-slate-600">
+                          <Check className="w-3.5 h-3.5 text-emerald-600 shrink-0 mt-0.5" />
+                          <span className="leading-snug">{takeaway}</span>
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Shira's Tip Box */}
+                    <div className="bg-amber-50/80 border border-amber-200/80 rounded-2xl p-3 text-xs text-amber-950 flex items-start gap-2">
+                      <span className="text-base shrink-0">👩‍🏫</span>
+                      <p className="leading-relaxed font-medium">
+                        <strong className="text-amber-900">הטיפ של שירה: </strong>
+                        {guide.shiraTip}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Actions Footer */}
+                  <div className="pt-3 border-t border-slate-100 space-y-2">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <div className="flex items-center gap-1.5">
+                        <button
+                          onClick={() => handleCopyGuide(guide)}
+                          className={`text-xs font-bold px-3 py-1.5 rounded-xl border flex items-center gap-1 transition-all ${
+                            isCopied
+                              ? 'bg-emerald-600 text-white border-emerald-600'
+                              : 'bg-white hover:bg-slate-50 text-slate-700 border-slate-200'
+                          }`}
+                          title="העתק סיכום מרוכז לשיעור / וואטסאפ"
+                        >
+                          {isCopied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+                          <span>{isCopied ? 'הועתק!' : 'העתק סיכום'}</span>
+                        </button>
+
+                        <button
+                          onClick={() => handleDownloadGuide(guide)}
+                          className="text-xs font-bold px-3 py-1.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 flex items-center gap-1 transition-all"
+                          title="הורד כמסמך Markdown/Text למחשב"
+                        >
+                          <Download className="w-3.5 h-3.5 text-slate-500" />
+                          <span>הורד קובץ</span>
+                        </button>
+                      </div>
+
+                      <button
+                        onClick={() => { sound.playClick(); setActiveGuideModal(guide); }}
+                        className="text-xs font-bold text-emerald-700 hover:text-emerald-900 flex items-center gap-1 group-hover:translate-x-0.5 transition-transform"
+                      >
+                        <span>קרא מדריך מלא</span>
+                        <ChevronLeft className="w-4 h-4" />
+                      </button>
+                    </div>
+
+                    <button
+                      onClick={() => handlePracticeTopic(guide.relatedTopic)}
+                      className="w-full py-2 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-800 text-xs font-bold flex items-center justify-center gap-1.5 transition-colors border border-emerald-200"
+                    >
+                      <Sparkles className="w-3.5 h-3.5 text-emerald-600" />
+                      <span>תרגל שאלות בנושא "{guide.relatedTopic}" ➔</span>
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          {filteredGuides.length === 0 && (
+            <div className="bg-white p-12 rounded-3xl border border-slate-200 text-center space-y-2">
+              <span className="text-3xl block">🔍</span>
+              <h4 className="font-bold text-slate-700">לא נמצאו מדריכים התואמים את החיפוש</h4>
+              <p className="text-xs text-slate-500">נסו לשנות את מילת החיפוש או לבחור קטגוריה אחרת.</p>
+              <button
+                onClick={() => { setSearchQuery(''); setSelectedLibraryCategory('all'); setSelectedLibraryGrade('all'); }}
+                className="text-xs text-emerald-700 font-bold underline mt-2"
+              >
+                איפוס כל הסינונים
+              </button>
+            </div>
+          )}
+
+        </div>
+      )}
 
       {/* TAB 1: YOUTH LABOR RIGHTS */}
       {activeTab === 'rights' && (
@@ -198,7 +550,7 @@ export const FinancialHub: React.FC<FinancialHubProps> = ({ onAddXP }) => {
           <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-sm space-y-4">
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
               <div>
-                <h3 className="text-lg font-black text-slate-900">שכר מינימום לשעה לנוער בישראל (מעודכן)</h3>
+                <h3 className="text-lg font-black text-slate-900">שכר מינימום לשעה לנוער בישראל (מעודכן 2025–2026)</h3>
                 <p className="text-xs text-slate-500">חובה חוקית – אסור למעסיק לשלם פחות מכך בשום מקרה!</p>
               </div>
               <span className="text-xs bg-emerald-100 text-emerald-900 font-bold px-2.5 py-1 rounded-full">
@@ -272,6 +624,20 @@ export const FinancialHub: React.FC<FinancialHubProps> = ({ onAddXP }) => {
 
           </div>
 
+          <div className="bg-emerald-50 rounded-2xl p-5 border border-emerald-200 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div>
+              <h4 className="font-bold text-slate-900 text-sm">רוצים לצלול לעומק החומרים?</h4>
+              <p className="text-xs text-slate-600 mt-0.5">מדריכי פענוח תלוש שכר, בנקאות דיגיטלית ודירוג אשראי מחכים לכם בספרייה.</p>
+            </div>
+            <button
+              onClick={() => { sound.playClick(); setActiveTab('library'); }}
+              className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-4 py-2 rounded-xl text-xs flex items-center gap-1.5 transition-all shadow-xs shrink-0"
+            >
+              <BookOpen className="w-4 h-4" />
+              <span>עבור לספריית המדריכים ➔</span>
+            </button>
+          </div>
+
         </div>
       )}
 
@@ -324,7 +690,7 @@ export const FinancialHub: React.FC<FinancialHubProps> = ({ onAddXP }) => {
         </div>
       )}
 
-      {/* TAB 3: ZERO-MAINTENANCE QUICK CALCULATORS */}
+      {/* TAB 3: QUICK CALCULATORS */}
       {activeTab === 'calculator' && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 animate-fadeIn">
           
@@ -483,13 +849,14 @@ export const FinancialHub: React.FC<FinancialHubProps> = ({ onAddXP }) => {
         <div className="space-y-4 animate-fadeIn">
           
           {/* Quick Quiz Filters */}
-          <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs space-y-3">
+          <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-xs space-y-3">
             <div className="flex flex-wrap items-center justify-between gap-2">
               <span className="text-xs font-bold text-slate-500">שכבת לימוד / כיתה:</span>
-              <span className="text-xs text-emerald-600 font-bold">
+              <span className="text-xs text-emerald-600 font-bold bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-200">
                 {financialQuestions.length} שאלות פיננסיות זמינות
               </span>
             </div>
+            
             <div className="flex flex-wrap items-center gap-1.5">
               {[
                 { id: 'all', label: 'כל השכבות' },
@@ -508,25 +875,72 @@ export const FinancialHub: React.FC<FinancialHubProps> = ({ onAddXP }) => {
                     setActiveQIndex(0);
                     setIsAnsDone(false);
                     setSelectedAns(null);
+                    setAttemptsCount(0);
+                    setWrongAttempts([]);
+                    setShowHint(false);
                   }}
                   className={`px-3 py-1 rounded-xl text-xs font-bold transition-all ${
                     selectedGrade === g.id
                       ? 'bg-emerald-600 text-white shadow-xs'
-                      : 'bg-slate-100 dark:bg-zinc-800 text-slate-700 dark:text-slate-200 hover:bg-slate-200'
+                      : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
                   }`}
                 >
                   {g.label}
                 </button>
               ))}
             </div>
+
+            {/* Topic Filter Row */}
+            <div className="flex flex-wrap items-center gap-1.5 pt-2 border-t border-slate-100">
+              <span className="text-xs font-bold text-slate-500 ml-1">נושא ממוקד:</span>
+              {[
+                { id: 'all', label: 'הכל' },
+                { id: 'זכויות נוער עובד', label: 'זכויות נוער עובד' },
+                { id: 'בנקאות וחיסכון', label: 'בנקאות וחיסכון' },
+                { id: 'תלוש שכר ומיסוי', label: 'תלוש שכר ומיסוי' },
+                { id: 'שוק ההון וריבית דריבית', label: 'שוק ההון וריבית' },
+                { id: 'תקציב וצרכנות', label: 'תקציב וצרכנות' },
+                { id: 'הונאות וביטוח', label: 'הונאות סייבר וביטוח' }
+              ].map((top) => (
+                <button
+                  key={top.id}
+                  onClick={() => {
+                    sound.playClick();
+                    setSelectedTopic(top.id);
+                    setActiveQIndex(0);
+                    setIsAnsDone(false);
+                    setSelectedAns(null);
+                    setAttemptsCount(0);
+                    setWrongAttempts([]);
+                    setShowHint(false);
+                  }}
+                  className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all ${
+                    selectedTopic === top.id
+                      ? 'bg-emerald-700 text-white shadow-xs'
+                      : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                  }`}
+                >
+                  {top.label}
+                </button>
+              ))}
+            </div>
             
-            <div className="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-slate-100 dark:border-zinc-800">
+            <div className="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-slate-100">
               <div className="flex flex-wrap items-center gap-1.5">
                 <span className="text-xs font-bold text-slate-500 ml-1">רמת קושי:</span>
                 {['all', 'בינוני', 'מתקדם', 'בגרות', 'אתגר עליון'].map((diff) => (
                   <button
                     key={diff}
-                    onClick={() => { sound.playClick(); setSelectedDifficulty(diff); setActiveQIndex(0); setIsAnsDone(false); setSelectedAns(null); }}
+                    onClick={() => { 
+                      sound.playClick(); 
+                      setSelectedDifficulty(diff); 
+                      setActiveQIndex(0); 
+                      setIsAnsDone(false); 
+                      setSelectedAns(null);
+                      setAttemptsCount(0);
+                      setWrongAttempts([]);
+                      setShowHint(false);
+                    }}
                     className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all ${
                       selectedDifficulty === diff
                         ? diff === 'אתגר עליון'
@@ -591,21 +1005,21 @@ export const FinancialHub: React.FC<FinancialHubProps> = ({ onAddXP }) => {
                 </div>
               )}
 
-              <div className="text-base sm:text-lg font-bold text-slate-900 dark:text-zinc-100 leading-relaxed">
+              <div className="text-base sm:text-lg font-bold text-slate-900 leading-relaxed">
                 {currentQ.question}
               </div>
 
               {/* Shira's Hint on First Mistake */}
               {showHint && !isAnsDone && (
-                <div className="bg-amber-50 dark:bg-amber-950/40 border-2 border-amber-300 dark:border-amber-700/60 rounded-2xl p-4 sm:p-5 text-amber-950 dark:text-amber-200 space-y-2 animate-in fade-in slide-in-from-top-2 duration-300 shadow-md">
-                  <div className="flex items-center gap-2 font-black text-sm text-amber-800 dark:text-amber-300">
+                <div className="bg-amber-50 border-2 border-amber-300 rounded-2xl p-4 sm:p-5 text-amber-950 space-y-2 animate-in fade-in slide-in-from-top-2 duration-300 shadow-md">
+                  <div className="flex items-center gap-2 font-black text-sm text-amber-800">
                     <span className="text-lg">💡</span>
                     <span>לא נורא! הנה רמז משירה – קיראו ונסו שוב:</span>
                   </div>
-                  <p className="text-xs sm:text-sm font-medium leading-relaxed bg-white/80 dark:bg-zinc-900/80 p-3 rounded-xl border border-amber-200 dark:border-amber-800/40">
+                  <p className="text-xs sm:text-sm font-medium leading-relaxed bg-white/80 p-3 rounded-xl border border-amber-200">
                     {currentQ.shiraTip || 'שימו לב לחוקי העבודה העדכניים ולזכויות המפורטות בטבלת השכר.'}
                   </p>
-                  <div className="text-xs font-bold text-amber-700 dark:text-amber-400">
+                  <div className="text-xs font-bold text-amber-700">
                     🎯 התשובה שבחרתם אינה נכונה. ביחרו תשובה אחרת מבין האפשרויות הנותרות!
                   </div>
                 </div>
@@ -617,13 +1031,13 @@ export const FinancialHub: React.FC<FinancialHubProps> = ({ onAddXP }) => {
                   const isCorrect = idx === currentQ.correctIndex;
                   const isWrongAttempt = wrongAttempts.includes(idx);
 
-                  let style = "border-slate-200 dark:border-zinc-800 hover:border-emerald-500 hover:bg-slate-50 dark:hover:bg-zinc-800 text-slate-800 dark:text-zinc-200";
+                  let style = "border-slate-200 hover:border-emerald-500 hover:bg-slate-50 text-slate-800";
                   if (isWrongAttempt && !isAnsDone) {
-                    style = "border-rose-300 dark:border-rose-900/60 bg-rose-50/70 dark:bg-rose-950/40 text-rose-800 dark:text-rose-300 line-through opacity-60 cursor-not-allowed";
+                    style = "border-rose-300 bg-rose-50/70 text-rose-800 line-through opacity-60 cursor-not-allowed";
                   } else if (isAnsDone) {
                     if (isCorrect) style = "bg-emerald-500 text-white font-bold border-emerald-500";
                     else if (isSelected) style = "bg-rose-500 text-white border-rose-500";
-                    else style = "opacity-50 border-slate-200 dark:border-zinc-800";
+                    else style = "opacity-50 border-slate-200";
                   }
                   return (
                     <button
@@ -641,7 +1055,9 @@ export const FinancialHub: React.FC<FinancialHubProps> = ({ onAddXP }) => {
               {isAnsDone && (
                 <div className="p-5 bg-slate-50 rounded-2xl border border-slate-200 space-y-3 animate-fadeIn">
                   <div className="font-extrabold text-slate-900 text-sm">
-                    {selectedAns === currentQ.correctIndex ? 'תשובה נכונה! (+15 XP) 💰' : 'לא מדויק, כדאי לזכור לחיים!'}
+                    {selectedAns === currentQ.correctIndex 
+                      ? (attemptsCount === 0 ? 'בול! תשובה נכונה בניסיון ראשון! (+15 XP) 🎉' : 'כל הכבוד! הצלחתם בניסיון השני! (+8 XP) 👏')
+                      : 'לא נורא, זו הזדמנות מעולה ללמוד לחיים!'}
                   </div>
                   <p className="text-xs sm:text-sm text-slate-700 leading-relaxed">
                     {currentQ.explanation}
@@ -670,10 +1086,183 @@ export const FinancialHub: React.FC<FinancialHubProps> = ({ onAddXP }) => {
             </div>
           ) : (
             <div className="bg-white p-8 rounded-2xl border border-slate-200 text-center text-slate-500 text-sm">
-              לא נמצאו שאלות בסינון זה. נסו לבחור רמת קושי אחרת.
+              לא נמצאו שאלות בסינון זה. נסו לבחור נושא או שכבת גיל אחרת.
             </div>
           )}
 
+        </div>
+      )}
+
+      {/* FULL GUIDE READER MODAL */}
+      {activeGuideModal && (
+        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 sm:p-6 animate-fadeIn">
+          <div 
+            className="bg-white rounded-3xl max-w-3xl w-full max-h-[90vh] flex flex-col shadow-2xl border border-slate-200 overflow-hidden animate-in fade-in zoom-in-95 duration-200"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Modal Header */}
+            <div className="p-6 border-b border-slate-100 bg-gradient-to-r from-emerald-50 via-teal-50 to-white flex items-start justify-between gap-4">
+              <div className="space-y-1.5">
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-emerald-600 text-white">
+                    {activeGuideModal.categoryLabel}
+                  </span>
+                  <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-slate-200 text-slate-700">
+                    {activeGuideModal.gradeText}
+                  </span>
+                  <span className="text-xs text-slate-500 flex items-center gap-1">
+                    <Clock className="w-3 h-3" />
+                    <span>{activeGuideModal.readTimeMinutes} דק׳ קריאה</span>
+                  </span>
+                </div>
+                <h3 className="text-xl sm:text-2xl font-black text-slate-900">
+                  {activeGuideModal.title}
+                </h3>
+                <p className="text-xs sm:text-sm text-slate-600 font-medium">
+                  {activeGuideModal.subtitle}
+                </p>
+              </div>
+
+              <button
+                onClick={() => setActiveGuideModal(null)}
+                className="w-8 h-8 rounded-full bg-white hover:bg-slate-100 border border-slate-200 text-slate-500 flex items-center justify-center transition-colors shrink-0"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Modal Body (Scrollable) */}
+            <div className="p-6 overflow-y-auto space-y-6 text-slate-800 leading-relaxed text-sm">
+              
+              {/* Summary Card */}
+              <div className="bg-emerald-50/70 rounded-2xl p-4 border border-emerald-200/80 space-y-1">
+                <span className="text-xs font-bold text-emerald-800 block">תקציר ומבוא:</span>
+                <p className="text-xs sm:text-sm text-slate-700">{activeGuideModal.summary}</p>
+              </div>
+
+              {/* Shira's Tip */}
+              <div className="bg-amber-50 border-2 border-amber-200 rounded-2xl p-4 text-amber-950 flex items-start gap-3 shadow-xs">
+                <span className="text-2xl shrink-0">👩‍🏫</span>
+                <div className="space-y-0.5">
+                  <span className="font-extrabold text-xs text-amber-900 block">הטיפ הפדגוגי של שירה למבחן ולחיים:</span>
+                  <p className="text-xs sm:text-sm font-medium leading-relaxed">{activeGuideModal.shiraTip}</p>
+                </div>
+              </div>
+
+              {/* Guide Content Sections */}
+              <div className="space-y-6">
+                {activeGuideModal.sections.map((sec, idx) => (
+                  <div key={idx} className="space-y-2 border-b border-slate-100 pb-5 last:border-b-0">
+                    <h4 className="font-black text-base text-slate-900 flex items-center gap-2">
+                      <span className="w-2 h-2 rounded-full bg-emerald-600"></span>
+                      <span>{sec.title}</span>
+                    </h4>
+                    {sec.paragraphs.map((p, pIdx) => (
+                      <p key={pIdx} className="text-xs sm:text-sm text-slate-600 leading-relaxed">
+                        {p}
+                      </p>
+                    ))}
+                  </div>
+                ))}
+              </div>
+
+              {/* Key takeaways bullet list */}
+              <div className="bg-slate-50 rounded-2xl p-5 border border-slate-200 space-y-2.5">
+                <h5 className="font-black text-xs sm:text-sm text-slate-900">🎯 סיכום נקודות מפתח לשינון:</h5>
+                <ul className="space-y-1.5">
+                  {activeGuideModal.keyTakeaways.map((takeaway, idx) => (
+                    <li key={idx} className="flex items-start gap-2 text-xs sm:text-sm text-slate-700">
+                      <Check className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+                      <span>{takeaway}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              {/* Practical Checklist */}
+              {activeGuideModal.checklist && activeGuideModal.checklist.length > 0 && (
+                <div className="bg-teal-50/60 rounded-2xl p-5 border border-teal-200/80 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <h5 className="font-black text-xs sm:text-sm text-teal-950 flex items-center gap-1.5">
+                      <span>📋 צ'ק-ליסט מעשי לבדיקה עצמית (סמנו מה שבדקתם):</span>
+                    </h5>
+                    <span className="text-[11px] text-teal-700 font-bold">
+                      {Object.keys(checkedItems).filter(k => k.startsWith(activeGuideModal.id) && checkedItems[k]).length} מתוך {activeGuideModal.checklist.length}
+                    </span>
+                  </div>
+                  <div className="space-y-2">
+                    {activeGuideModal.checklist.map((item, idx) => {
+                      const itemKey = `${activeGuideModal.id}-${idx}`;
+                      const isChecked = !!checkedItems[itemKey];
+                      return (
+                        <div
+                          key={idx}
+                          onClick={() => toggleChecklistItem(itemKey)}
+                          className={`p-3 rounded-xl border flex items-center gap-3 cursor-pointer transition-all ${
+                            isChecked
+                              ? 'bg-teal-100/70 border-teal-300 text-teal-900 font-bold line-through'
+                              : 'bg-white border-teal-200 text-slate-700 hover:bg-teal-50/50'
+                          }`}
+                        >
+                          <div className={`w-5 h-5 rounded-md border flex items-center justify-center shrink-0 ${
+                            isChecked ? 'bg-teal-600 border-teal-600 text-white' : 'border-slate-300 bg-white'
+                          }`}>
+                            {isChecked && <Check className="w-3.5 h-3.5" />}
+                          </div>
+                          <span className="text-xs sm:text-sm leading-snug">{item}</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {/* Source Reference Link */}
+              <div className="pt-2 text-xs text-slate-400 flex items-center justify-between">
+                <span>מקור רשמי מוסמך: {activeGuideModal.sourceName}</span>
+                <a
+                  href={activeGuideModal.sourceUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-emerald-700 hover:text-emerald-900 font-bold flex items-center gap-1"
+                >
+                  <span>פתח אתר רשמי</span>
+                  <ExternalLink className="w-3.5 h-3.5" />
+                </a>
+              </div>
+
+            </div>
+
+            {/* Modal Footer Actions */}
+            <div className="p-4 sm:p-5 border-t border-slate-100 bg-slate-50 flex flex-wrap items-center justify-between gap-3">
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => handleCopyGuide(activeGuideModal)}
+                  className="px-4 py-2 rounded-xl bg-white hover:bg-slate-100 text-slate-700 font-bold text-xs border border-slate-200 flex items-center gap-1.5 transition-colors shadow-2xs"
+                >
+                  {copiedGuideId === activeGuideModal.id ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5 text-slate-500" />}
+                  <span>{copiedGuideId === activeGuideModal.id ? 'הועתק!' : 'העתק סיכום מלא'}</span>
+                </button>
+
+                <button
+                  onClick={() => handleDownloadGuide(activeGuideModal)}
+                  className="px-4 py-2 rounded-xl bg-white hover:bg-slate-100 text-slate-700 font-bold text-xs border border-slate-200 flex items-center gap-1.5 transition-colors shadow-2xs"
+                >
+                  <Download className="w-3.5 h-3.5 text-slate-500" />
+                  <span>הורד כקובץ סיכום</span>
+                </button>
+              </div>
+
+              <button
+                onClick={() => handlePracticeTopic(activeGuideModal.relatedTopic)}
+                className="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs flex items-center gap-1.5 transition-all shadow-md"
+              >
+                <Sparkles className="w-4 h-4 text-amber-300" />
+                <span>תרגל שאלות בנושא זה עכשיו ➔</span>
+              </button>
+            </div>
+
+          </div>
         </div>
       )}
 

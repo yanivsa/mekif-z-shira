@@ -517,7 +517,7 @@ export const HeroWelcome: React.FC<HeroWelcomeProps> = ({
             </div>
           </div>
 
-          {/* Card 3: Financial Education */}
+          {/* Card 3: Financial Education & Library */}
           <div 
             onClick={() => onNavigate('finance')}
             className="group bg-white rounded-3xl p-6 border border-slate-200 hover:border-emerald-500/50 shadow-sm hover:shadow-xl transition-all cursor-pointer flex flex-col justify-between"
@@ -527,19 +527,24 @@ export const HeroWelcome: React.FC<HeroWelcomeProps> = ({
                 <div className="w-12 h-12 rounded-2xl bg-emerald-100 text-emerald-700 flex items-center justify-center group-hover:scale-110 transition-transform">
                   <Coins className="w-6 h-6" />
                 </div>
-                <span className="text-xs font-bold px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-800">
-                  מעשי לחיים
-                </span>
+                <div className="flex items-center gap-1.5">
+                  <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-900 border border-emerald-300">
+                    8 מדריכים בספרייה 📚
+                  </span>
+                  <span className="text-xs font-bold px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-800">
+                    מעשי לחיים
+                  </span>
+                </div>
               </div>
               <h3 className="text-xl font-black text-slate-900 group-hover:text-emerald-700 transition-colors">
-                חינוך פיננסי וזכויות נוער
+                חינוך פיננסי, זכויות נוער וספריית חומרים
               </h3>
               <p className="text-slate-600 text-sm mt-2 leading-relaxed">
-                שכר מינימום לנוער, קריאת תלוש שכר, הגנה מפני קנסות בעבודה, בנקאות נבונה, כוחה של ריבית דריבית וזיהוי הונאות רשת.
+                ספריית מדריכים רשמיים, טבלאות שכר מינימום 2025–2026, פענוח תלוש שכר, בנקאות דיגיטלית, ריבית דריבית ותרגול 2,700+ שאלות.
               </p>
             </div>
             <div className="pt-6 mt-4 border-t border-slate-100 flex items-center justify-between text-sm font-bold text-emerald-700">
-              <span>למדריך ולכלים הפיננסיים</span>
+              <span>לספריית החומרים והכלים הפיננסיים</span>
               <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
             </div>
           </div>
