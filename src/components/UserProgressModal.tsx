@@ -44,6 +44,9 @@ export const UserProgressModal: React.FC<UserProgressModalProps> = ({
                 {isEditing ? (
                   <div className="flex items-center gap-1">
                     <input
+                      id="student-name-input"
+                      name="studentName"
+                      aria-label="שם התלמיד"
                       type="text"
                       value={nameInput}
                       onChange={(e) => setNameInput(e.target.value)}

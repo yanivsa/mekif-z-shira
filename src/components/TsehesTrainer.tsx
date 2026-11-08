@@ -617,7 +617,13 @@ export const TsehesTrainer: React.FC<TsehesTrainerProps> = ({ onAddXP, onTsehesC
                   </span>
                   {currentQ.moeRubric.breakdown.map((item, idx) => (
                     <div key={idx} className="flex items-start gap-3 bg-white p-3 rounded-xl border border-slate-200 text-xs sm:text-sm">
-                      <input type="checkbox" className="w-4 h-4 rounded text-amber-600 mt-0.5" />
+                      <input 
+                        type="checkbox" 
+                        id={`tsehes-rubric-${idx}`}
+                        name={`tsehesRubric${idx}`}
+                        aria-label={`אישור קריטריון ${item.component}`}
+                        className="w-4 h-4 rounded text-amber-600 mt-0.5" 
+                      />
                       <div className="flex-1">
                         <span className="font-extrabold text-slate-900 ml-1.5">{item.component} ({item.points} נק׳):</span>
                         <span className="text-slate-700">{item.requirement}</span>

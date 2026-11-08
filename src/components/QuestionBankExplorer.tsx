@@ -224,6 +224,9 @@ export const QuestionBankExplorer: React.FC<QuestionBankExplorerProps> = ({
         <div className="relative">
           <Search className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
           <input
+            id="question-bank-search"
+            name="questionBankSearch"
+            aria-label="חיפוש חופשי בבנק השאלות"
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}

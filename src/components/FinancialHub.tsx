@@ -407,6 +407,9 @@ export const FinancialHub: React.FC<FinancialHubProps> = ({ onAddXP, initialTab 
               <div className="relative w-full md:w-72">
                 <Search className="w-4 h-4 text-slate-400 absolute right-3.5 top-3" />
                 <input
+                  id="financial-library-search"
+                  name="financialLibrarySearch"
+                  aria-label="חיפוש נושא, מושג או מילת מפתח בספריה הפיננסית"
                   type="text"
                   placeholder="חיפוש נושא, מושג או מילת מפתח..."
                   value={searchQuery}
@@ -802,6 +805,9 @@ export const FinancialHub: React.FC<FinancialHubProps> = ({ onAddXP, initialTab 
                   <span className="text-emerald-700 font-extrabold">{hoursWorked} שעות</span>
                 </div>
                 <input
+                  id="wage-calc-hours"
+                  name="wageCalcHours"
+                  aria-label="שעות עבודה בחודש"
                   type="range"
                   min="5"
                   max="120"
@@ -817,6 +823,9 @@ export const FinancialHub: React.FC<FinancialHubProps> = ({ onAddXP, initialTab 
                   <span className="text-emerald-700 font-extrabold">{travelCost} ₪</span>
                 </div>
                 <input
+                  id="wage-calc-travel"
+                  name="wageCalcTravel"
+                  aria-label="החזר נסיעות חודשי"
                   type="range"
                   min="0"
                   max="350"
@@ -857,6 +866,9 @@ export const FinancialHub: React.FC<FinancialHubProps> = ({ onAddXP, initialTab 
                   <span className="text-emerald-700 font-extrabold">{monthlyDeposit} ₪ בחודש</span>
                 </div>
                 <input
+                  id="interest-calc-deposit"
+                  name="interestCalcDeposit"
+                  aria-label="חיסכון חודשי"
                   type="range"
                   min="50"
                   max="1000"
@@ -873,6 +885,9 @@ export const FinancialHub: React.FC<FinancialHubProps> = ({ onAddXP, initialTab 
                   <span className="text-emerald-700 font-extrabold">{years} שנים</span>
                 </div>
                 <input
+                  id="interest-calc-years"
+                  name="interestCalcYears"
+                  aria-label="משך זמן החיסכון בשנים"
                   type="range"
                   min="3"
                   max="30"
