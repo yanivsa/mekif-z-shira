@@ -43,6 +43,22 @@ export const QuestionBankExplorer: React.FC<QuestionBankExplorerProps> = ({
   const [wrongAttemptsByQ, setWrongAttemptsByQ] = useState<Record<string, number[]>>({});
   const [hintsByQ, setHintsByQ] = useState<Record<string, boolean>>({});
 
+  // Dynamic Bank Stats
+  const stats = useMemo(() => {
+    const total = MASTER_QUESTION_BANK.length;
+    const civics = MASTER_QUESTION_BANK.filter(q => q.subject === 'civics').length;
+    const finance = MASTER_QUESTION_BANK.filter(q => q.subject === 'finance').length;
+    const byGrade = {
+      z: MASTER_QUESTION_BANK.filter(q => q.gradeText.includes('ז׳')).length,
+      ch: MASTER_QUESTION_BANK.filter(q => q.gradeText.includes('ח׳')).length,
+      t: MASTER_QUESTION_BANK.filter(q => q.gradeText.includes('ט׳')).length,
+      y: MASTER_QUESTION_BANK.filter(q => q.gradeText.includes('כיתה י׳')).length,
+      ya: MASTER_QUESTION_BANK.filter(q => q.gradeText.includes('י״א')).length,
+      yb: MASTER_QUESTION_BANK.filter(q => q.gradeText.includes('י״ב')).length,
+    };
+    return { total, civics, finance, byGrade };
+  }, []);
+
   // Filter questions
   const filteredQuestions = useMemo(() => {
     return MASTER_QUESTION_BANK.filter((q) => {
@@ -145,7 +161,7 @@ export const QuestionBankExplorer: React.FC<QuestionBankExplorerProps> = ({
               <span>המאגר המקיף בישראל: לפחות 1,000 שאלות לכל כיתה!</span>
             </div>
             <h1 className="text-2xl sm:text-3xl font-black tracking-tight">
-              בנק השאלות המלא: 6,438 שאלות אתגר (1,000+ לכל כיתה)
+              בנק השאלות המלא: {stats.total.toLocaleString()} שאלות אתגר (1,000+ לכל כיתה)
             </h1>
             <p className="text-sm text-slate-300 leading-relaxed">
               לכל כיתה (ז׳, ח׳, ט׳, י׳, י״א, י״ב) הוכנו מעל 1,000 שאלות ייעודיות המבוססות בדיוק על חומרי הלימוד של אותה כיתה, ברמת קושי גבוהה ומעמיקה במיוחד להבטחת שליטה מלאה בבגרות ובמבחני הכיתה.
@@ -174,30 +190,30 @@ export const QuestionBankExplorer: React.FC<QuestionBankExplorerProps> = ({
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-6 border-t border-slate-800/80 mt-6 text-center">
           <div className="bg-slate-800/50 rounded-xl p-3 border border-slate-700/50">
             <p className="text-xs text-slate-400 font-medium">סה״כ שאלות במאגר</p>
-            <p className="text-xl sm:text-2xl font-black text-amber-400">6,438</p>
+            <p className="text-xl sm:text-2xl font-black text-amber-400">{stats.total.toLocaleString()}</p>
           </div>
           <div className="bg-slate-800/50 rounded-xl p-3 border border-slate-700/50">
             <p className="text-xs text-slate-400 font-medium">שאלות לכל כיתה</p>
-            <p className="text-xl sm:text-2xl font-black text-sky-400">1,070+ לכל שכבה</p>
+            <p className="text-xl sm:text-2xl font-black text-sky-400">1,080+ לכל שכבה</p>
           </div>
           <div className="bg-slate-800/50 rounded-xl p-3 border border-slate-700/50">
             <p className="text-xs text-slate-400 font-medium">שאלות אזרחות וחט״ע</p>
-            <p className="text-xl sm:text-2xl font-black text-purple-400">3,730</p>
+            <p className="text-xl sm:text-2xl font-black text-purple-400">{stats.civics.toLocaleString()}</p>
           </div>
           <div className="bg-slate-800/50 rounded-xl p-3 border border-slate-700/50">
             <p className="text-xs text-slate-400 font-medium">שאלות חינוך פיננסי</p>
-            <p className="text-xl sm:text-2xl font-black text-emerald-400">2,708</p>
+            <p className="text-xl sm:text-2xl font-black text-emerald-400">{stats.finance.toLocaleString()}</p>
           </div>
         </div>
 
         {/* Per-Grade Breakdown Badges */}
         <div className="flex flex-wrap items-center justify-center gap-2 pt-4 border-t border-slate-800/50 mt-4 text-xs font-bold text-slate-300">
-          <span className="bg-slate-800 px-3 py-1 rounded-full border border-slate-700">כיתה ז׳: 1,070 שאלות</span>
-          <span className="bg-slate-800 px-3 py-1 rounded-full border border-slate-700">כיתה ח׳: 1,071 שאלות</span>
-          <span className="bg-slate-800 px-3 py-1 rounded-full border border-slate-700">כיתה ט׳: 1,071 שאלות</span>
-          <span className="bg-slate-800 px-3 py-1 rounded-full border border-slate-700">כיתה י׳: 1,071 שאלות</span>
-          <span className="bg-slate-800 px-3 py-1 rounded-full border border-slate-700">כיתה י״א: 1,071 שאלות</span>
-          <span className="bg-slate-800 px-3 py-1 rounded-full border border-slate-700">כיתה י״ב: 1,071 שאלות</span>
+          <span className="bg-slate-800 px-3 py-1 rounded-full border border-slate-700">כיתה ז׳: {stats.byGrade.z.toLocaleString()} שאלות</span>
+          <span className="bg-slate-800 px-3 py-1 rounded-full border border-slate-700">כיתה ח׳: {stats.byGrade.ch.toLocaleString()} שאלות</span>
+          <span className="bg-slate-800 px-3 py-1 rounded-full border border-slate-700">כיתה ט׳: {stats.byGrade.t.toLocaleString()} שאלות</span>
+          <span className="bg-slate-800 px-3 py-1 rounded-full border border-slate-700">כיתה י׳: {stats.byGrade.y.toLocaleString()} שאלות</span>
+          <span className="bg-slate-800 px-3 py-1 rounded-full border border-slate-700">כיתה י״א: {stats.byGrade.ya.toLocaleString()} שאלות</span>
+          <span className="bg-slate-800 px-3 py-1 rounded-full border border-slate-700">כיתה י״ב: {stats.byGrade.yb.toLocaleString()} שאלות</span>
         </div>
       </div>
 

@@ -359,7 +359,7 @@ export const ExamSimulator: React.FC<ExamSimulatorProps> = ({
       )}
 
       {/* 2. ACTIVE EXAM SCREEN */}
-      {examStatus === 'active' && activeQuestions.length > 0 && (
+      {examStatus === 'active' && activeQuestions.length > 0 && activeQuestions[currentIdx] && (
         <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-sm space-y-6 animate-fadeIn max-w-3xl mx-auto">
           
           {/* Header Strip with Timer & Progress */}
@@ -444,7 +444,7 @@ export const ExamSimulator: React.FC<ExamSimulatorProps> = ({
           <div className="flex items-center justify-between pt-4 border-t border-slate-100">
             <button
               disabled={currentIdx === 0}
-              onClick={() => setCurrentIdx((p) => p - 1)}
+              onClick={() => setCurrentIdx((p) => Math.max(0, p - 1))}
               className="px-4 py-2 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100 disabled:opacity-40"
             >
               ➔ לשאלה הקודמת
@@ -452,7 +452,7 @@ export const ExamSimulator: React.FC<ExamSimulatorProps> = ({
 
             {currentIdx < activeQuestions.length - 1 ? (
               <button
-                onClick={() => setCurrentIdx((p) => p + 1)}
+                onClick={() => setCurrentIdx((p) => Math.min(p + 1, activeQuestions.length - 1))}
                 className="bg-brand-600 hover:bg-brand-700 text-white font-bold px-5 py-2.5 rounded-xl transition-all text-xs flex items-center gap-1.5"
               >
                 <span>לשאלה הבאה</span>

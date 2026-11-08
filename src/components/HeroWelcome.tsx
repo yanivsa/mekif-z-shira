@@ -560,7 +560,7 @@ export const HeroWelcome: React.FC<HeroWelcomeProps> = ({
                   <Database className="w-6 h-6" />
                 </div>
                 <span className="text-xs font-black px-2.5 py-1 rounded-full bg-amber-400 text-amber-950">
-                  6,430+ שאלות
+                  6,480+ שאלות
                 </span>
               </div>
               <h3 className="text-xl font-black text-white group-hover:text-indigo-300 transition-colors">
