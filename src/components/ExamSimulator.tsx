@@ -254,7 +254,7 @@ export const ExamSimulator: React.FC<ExamSimulatorProps> = ({
             {/* Difficulty selector */}
             <div className="space-y-2">
               <label className="font-bold text-slate-800 block">רמת קושי של השאלות:</label>
-              <div className="grid grid-cols-4 gap-2">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                 <button
                   type="button"
                   onClick={() => setSelectedDifficulty('all')}

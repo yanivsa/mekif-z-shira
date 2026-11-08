@@ -259,7 +259,7 @@ export const FinancialHub: React.FC<FinancialHubProps> = ({ onAddXP, initialTab 
       </div>
 
       {/* Official Ministry Financial Education Portal Ribbon */}
-      <div className="bg-gradient-to-r from-emerald-50 via-teal-50 to-slate-50 border border-emerald-200 rounded-3xl p-4 sm:p-5 shadow-xs space-y-3">
+      <div className="bg-gradient-to-r from-emerald-50 via-teal-50 to-slate-50 border border-emerald-200 rounded-3xl p-4 sm:p-5 shadow-xs space-y-3 w-full max-w-full overflow-hidden min-w-0">
         <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
           <div className="flex items-start gap-3">
             <span className="p-2.5 bg-emerald-600 text-white rounded-2xl shadow-xs shrink-0 mt-0.5">
@@ -290,7 +290,8 @@ export const FinancialHub: React.FC<FinancialHubProps> = ({ onAddXP, initialTab 
         </div>
 
         {/* 4 Spiral Axes interactive badges */}
-        <div className="flex items-center gap-2 overflow-x-auto pb-1 text-xs font-bold text-slate-700 scrollbar-none pt-1 border-t border-emerald-100">
+        <div className="w-full max-w-full overflow-hidden pt-1 border-t border-emerald-100">
+          <div className="flex items-center gap-2 overflow-x-auto pb-1 text-xs font-bold text-slate-700 scrollbar-none overscroll-x-contain">
           <span className="shrink-0 text-emerald-800 font-black flex items-center gap-1">
             <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" /> 4 צירי הליבה:
           </span>
@@ -313,6 +314,7 @@ export const FinancialHub: React.FC<FinancialHubProps> = ({ onAddXP, initialTab 
               <span>{axis.name}</span>
             </button>
           ))}
+          </div>
         </div>
       </div>
 

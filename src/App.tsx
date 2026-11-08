@@ -68,7 +68,7 @@ export function AppContent() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col font-sans selection:bg-brand-500 selection:text-white">
+    <div className="min-h-screen flex flex-col font-sans selection:bg-brand-500 selection:text-white w-full max-w-full overflow-x-hidden">
       {/* Top Navigation */}
       <Navbar
         currentTab={currentTab}
@@ -80,8 +80,8 @@ export function AppContent() {
         onOpenSpeedDrill={() => setIsSpeedDrillOpen(true)}
       />
 
-      {/* Main Content Area */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 pt-6 sm:pt-8">
+      {/* Main Content Area - with mobile bottom bar padding */}
+      <main className="flex-1 max-w-7xl w-full mx-auto px-3.5 sm:px-6 lg:px-8 pt-4 sm:pt-8 pb-24 md:pb-12 min-w-0">
         {currentTab === 'home' && (
           <HeroWelcome
             onNavigate={(tab) => {

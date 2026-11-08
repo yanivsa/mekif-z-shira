@@ -122,12 +122,12 @@ export const HeroWelcome: React.FC<HeroWelcomeProps> = ({
     <div className="space-y-8 pb-12">
       
       {/* Teacher Shira's Hero Welcome Card */}
-      <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-brand-900 via-brand-800 to-indigo-950 text-white shadow-xl">
+      <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-brand-900 via-brand-800 to-indigo-950 text-white shadow-xl [contain:paint]">
         {/* Decorative backdrop shapes */}
-        <div className="absolute top-0 right-0 -mr-20 -mt-20 w-80 h-80 rounded-full bg-brand-500/20 blur-3xl pointer-events-none" />
-        <div className="absolute bottom-0 left-0 -ml-20 -mb-20 w-80 h-80 rounded-full bg-civics/20 blur-3xl pointer-events-none" />
+        <div className="absolute top-0 right-0 w-64 h-64 -translate-y-12 translate-x-12 rounded-full bg-brand-500/20 blur-2xl pointer-events-none" />
+        <div className="absolute bottom-0 left-0 w-64 h-64 translate-y-12 -translate-x-12 rounded-full bg-civics/20 blur-2xl pointer-events-none" />
 
-        <div className="relative p-6 sm:p-10 lg:p-12 flex flex-col lg:flex-row items-center gap-8 justify-between">
+        <div className="relative p-5 sm:p-10 lg:p-12 flex flex-col lg:flex-row items-center gap-6 sm:gap-8 justify-between">
           
           <div className="space-y-4 max-w-2xl text-center lg:text-right">
             <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-md px-3.5 py-1.5 rounded-full text-xs sm:text-sm font-semibold text-brand-200 border border-white/10">
@@ -281,45 +281,45 @@ export const HeroWelcome: React.FC<HeroWelcomeProps> = ({
       </section>
 
       {/* Stats Summary Strip for the Student */}
-      <section className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+      <section className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-4">
         
-        <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs flex items-center gap-3.5">
-          <div className="w-12 h-12 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center text-xl">
-            <Flame className="w-6 h-6 text-amber-500 fill-amber-500" />
+        <div className="bg-white p-3 sm:p-4 rounded-2xl border border-slate-200 shadow-xs flex items-center gap-2.5 sm:gap-3.5 min-w-0">
+          <div className="w-9 h-9 sm:w-12 sm:h-12 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center text-xl shrink-0">
+            <Flame className="w-5 h-5 sm:w-6 sm:h-6 text-amber-500 fill-amber-500" />
           </div>
-          <div>
-            <div className="text-2xl font-black text-slate-900">{userStats.streakDays} ימים</div>
-            <div className="text-xs text-slate-500 font-medium">רצף למידה פעיל</div>
-          </div>
-        </div>
-
-        <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs flex items-center gap-3.5">
-          <div className="w-12 h-12 rounded-xl bg-brand-50 text-brand-600 flex items-center justify-center text-xl">
-            <Trophy className="w-6 h-6 text-brand-600" />
-          </div>
-          <div>
-            <div className="text-2xl font-black text-slate-900">{userStats.xp} XP</div>
-            <div className="text-xs text-slate-500 font-medium">נקודות ניסיון</div>
+          <div className="min-w-0">
+            <div className="text-base sm:text-2xl font-black text-slate-900 truncate">{userStats.streakDays} ימים</div>
+            <div className="text-[11px] sm:text-xs text-slate-500 font-medium truncate">רצף פעיל</div>
           </div>
         </div>
 
-        <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs flex items-center gap-3.5">
-          <div className="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-xl">
-            <CheckCircle className="w-6 h-6 text-emerald-600" />
+        <div className="bg-white p-3 sm:p-4 rounded-2xl border border-slate-200 shadow-xs flex items-center gap-2.5 sm:gap-3.5 min-w-0">
+          <div className="w-9 h-9 sm:w-12 sm:h-12 rounded-xl bg-brand-50 text-brand-600 flex items-center justify-center text-xl shrink-0">
+            <Trophy className="w-5 h-5 sm:w-6 sm:h-6 text-brand-600" />
           </div>
-          <div>
-            <div className="text-2xl font-black text-slate-900">{userStats.quizzesCompleted}</div>
-            <div className="text-xs text-slate-500 font-medium">מבחנים שהושלמו</div>
+          <div className="min-w-0">
+            <div className="text-base sm:text-2xl font-black text-slate-900 truncate">{userStats.xp} XP</div>
+            <div className="text-[11px] sm:text-xs text-slate-500 font-medium truncate">נקודות ניסיון</div>
           </div>
         </div>
 
-        <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs flex items-center gap-3.5">
-          <div className="w-12 h-12 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center text-xl">
-            <PenTool className="w-6 h-6 text-purple-600" />
+        <div className="bg-white p-3 sm:p-4 rounded-2xl border border-slate-200 shadow-xs flex items-center gap-2.5 sm:gap-3.5 min-w-0">
+          <div className="w-9 h-9 sm:w-12 sm:h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-xl shrink-0">
+            <CheckCircle className="w-5 h-5 sm:w-6 sm:h-6 text-emerald-600" />
           </div>
-          <div>
-            <div className="text-2xl font-black text-slate-900">{userStats.tsehesCompleted}</div>
-            <div className="text-xs text-slate-500 font-medium">אימוני צה״ס בגרות</div>
+          <div className="min-w-0">
+            <div className="text-base sm:text-2xl font-black text-slate-900 truncate">{userStats.quizzesCompleted}</div>
+            <div className="text-[11px] sm:text-xs text-slate-500 font-medium truncate">מבחנים</div>
+          </div>
+        </div>
+
+        <div className="bg-white p-3 sm:p-4 rounded-2xl border border-slate-200 shadow-xs flex items-center gap-2.5 sm:gap-3.5 min-w-0">
+          <div className="w-9 h-9 sm:w-12 sm:h-12 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center text-xl shrink-0">
+            <PenTool className="w-5 h-5 sm:w-6 sm:h-6 text-purple-600" />
+          </div>
+          <div className="min-w-0">
+            <div className="text-base sm:text-2xl font-black text-slate-900 truncate">{userStats.tsehesCompleted}</div>
+            <div className="text-[11px] sm:text-xs text-slate-500 font-medium truncate">אימוני צה״ס</div>
           </div>
         </div>
 

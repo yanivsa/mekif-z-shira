@@ -72,26 +72,26 @@ export const GlossaryModal: React.FC<GlossaryModalProps> = ({ isOpen, onClose })
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-xs animate-fadeIn">
-      <div className="bg-white dark:bg-zinc-900 rounded-3xl w-full max-w-3xl max-h-[90vh] shadow-2xl flex flex-col overflow-hidden border border-slate-200 dark:border-zinc-800">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-2.5 sm:p-4 bg-slate-950/60 backdrop-blur-xs animate-fadeIn">
+      <div className="bg-white dark:bg-zinc-900 rounded-3xl w-full max-w-3xl max-h-[92vh] shadow-2xl flex flex-col overflow-hidden border border-slate-200 dark:border-zinc-800">
         
         {/* Modal Header */}
-        <div className="p-4 sm:p-5 border-b border-slate-100 dark:border-zinc-800 flex items-center justify-between bg-slate-50 dark:bg-zinc-950">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-civics-light text-civics flex items-center justify-center shadow-xs">
+        <div className="p-3.5 sm:p-5 border-b border-slate-100 dark:border-zinc-800 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 bg-slate-50 dark:bg-zinc-950">
+          <div className="flex items-center gap-2.5 sm:gap-3">
+            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-civics-light text-civics flex items-center justify-center shadow-xs shrink-0">
               <BookOpen className="w-5 h-5" />
             </div>
             <div>
-              <h2 className="text-base sm:text-lg font-black text-slate-900 dark:text-zinc-100">
+              <h2 className="text-sm sm:text-lg font-black text-slate-900 dark:text-zinc-100">
                 מרחב המונחים וההגדרות של שירה
               </h2>
-              <p className="text-xs text-slate-500 dark:text-zinc-400">
+              <p className="text-[11px] sm:text-xs text-slate-500 dark:text-zinc-400">
                 הגדרות מדויקות ממונחון משרד החינוך ומפמ״ר אזרחות לבגרות ולמבחנים
               </p>
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center justify-between w-full sm:w-auto gap-2">
             {/* View Switcher Pills */}
             <div className="bg-slate-200 dark:bg-zinc-800 p-1 rounded-xl flex items-center gap-1 text-xs font-bold">
               <button
@@ -119,7 +119,8 @@ export const GlossaryModal: React.FC<GlossaryModalProps> = ({ isOpen, onClose })
 
             <button
               onClick={onClose}
-              className="w-8 h-8 rounded-full bg-slate-200 dark:bg-zinc-800 hover:bg-slate-300 dark:hover:bg-zinc-700 text-slate-700 dark:text-zinc-200 flex items-center justify-center transition-colors"
+              className="w-8 h-8 rounded-full bg-slate-200 dark:bg-zinc-800 hover:bg-slate-300 dark:hover:bg-zinc-700 text-slate-700 dark:text-zinc-200 flex items-center justify-center transition-colors shrink-0"
+              aria-label="סגור מילון"
             >
               <X className="w-4 h-4" />
             </button>
@@ -127,7 +128,8 @@ export const GlossaryModal: React.FC<GlossaryModalProps> = ({ isOpen, onClose })
         </div>
 
         {/* Categories Bar */}
-        <div className="px-4 py-3 border-b border-slate-100 dark:border-zinc-800 bg-slate-50/50 dark:bg-zinc-900/50 flex items-center gap-1.5 overflow-x-auto">
+        <div className="w-full max-w-full overflow-hidden border-b border-slate-100 dark:border-zinc-800 bg-slate-50/50 dark:bg-zinc-900/50">
+          <div className="px-4 py-2.5 flex items-center gap-1.5 overflow-x-auto overscroll-x-contain scrollbar-none">
           <button
             onClick={() => { sound.playClick(); setSelectedCategory('all'); setCardIndex(0); }}
             className={`px-3 py-1 rounded-lg text-xs font-bold whitespace-nowrap transition-colors ${
@@ -151,6 +153,7 @@ export const GlossaryModal: React.FC<GlossaryModalProps> = ({ isOpen, onClose })
               {cat}
             </button>
           ))}
+          </div>
         </div>
 
         {/* VIEW 1: SEARCHABLE LIST VIEW */}

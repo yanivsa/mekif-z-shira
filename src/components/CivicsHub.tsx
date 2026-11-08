@@ -134,7 +134,7 @@ export const CivicsHub: React.FC<CivicsHubProps> = ({ onAddXP, onNavigateToTsehe
       </div>
 
       {/* Official Ministry Portals & Syllabi Banner */}
-      <div className="bg-gradient-to-r from-purple-50 via-indigo-50 to-slate-50 border border-purple-200 rounded-3xl p-4 sm:p-5 shadow-xs space-y-3">
+      <div className="bg-gradient-to-r from-purple-50 via-indigo-50 to-slate-50 border border-purple-200 rounded-3xl p-4 sm:p-5 shadow-xs space-y-3 w-full max-w-full overflow-hidden min-w-0">
         <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
           <div className="flex items-start gap-3">
             <span className="p-2.5 bg-civics text-white rounded-2xl shadow-xs shrink-0 mt-0.5">
@@ -176,7 +176,8 @@ export const CivicsHub: React.FC<CivicsHubProps> = ({ onAddXP, onNavigateToTsehe
         </div>
 
         {/* 7 Mandatory Units & Core Bagrut Skills Ribbon */}
-        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 text-xs font-bold text-slate-700 scrollbar-none pt-1 border-t border-purple-100">
+        <div className="w-full max-w-full overflow-hidden pt-1 border-t border-purple-100">
+          <div className="flex items-center gap-1.5 overflow-x-auto pb-1 text-xs font-bold text-slate-700 scrollbar-none overscroll-x-contain">
           <span className="shrink-0 text-purple-700 font-black flex items-center gap-1">
             <ShieldCheck className="w-3.5 h-3.5" /> יחידות הליבה (משרד החינוך):
           </span>
@@ -200,6 +201,7 @@ export const CivicsHub: React.FC<CivicsHubProps> = ({ onAddXP, onNavigateToTsehe
               {unit}
             </span>
           ))}
+          </div>
         </div>
       </div>
 

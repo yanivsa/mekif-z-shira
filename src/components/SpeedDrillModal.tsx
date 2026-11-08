@@ -127,8 +127,8 @@ export const SpeedDrillModal: React.FC<SpeedDrillModalProps> = ({ isOpen, onClos
   const currentQ = activeQuestions[currentIndex];
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fadeIn">
-      <div className="bg-white rounded-3xl max-w-2xl w-full border border-slate-200 shadow-2xl p-6 sm:p-8 space-y-6 text-slate-900 relative overflow-hidden">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/80 backdrop-blur-md animate-fadeIn">
+      <div className="bg-white rounded-3xl max-w-2xl w-full max-h-[92vh] overflow-y-auto border border-slate-200 shadow-2xl p-5 sm:p-8 space-y-5 sm:space-y-6 text-slate-900 relative">
         
         {/* Close Button */}
         <button
