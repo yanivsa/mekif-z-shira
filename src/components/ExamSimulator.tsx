@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { 
   CheckCircle2, 
   Clock, 
@@ -44,6 +44,8 @@ export const ExamSimulator: React.FC<ExamSimulatorProps> = ({
   // Results state
   const [examResult, setExamResult] = useState<ExamResult | null>(null);
 
+  const finishExamRef = useRef<() => void>(() => {});
+
   // Timer effect
   useEffect(() => {
     let interval: any;
@@ -52,7 +54,7 @@ export const ExamSimulator: React.FC<ExamSimulatorProps> = ({
         setSecondsRemaining((prev) => {
           if (prev <= 1) {
             clearInterval(interval);
-            finishExam();
+            finishExamRef.current?.();
             return 0;
           }
           return prev - 1;
@@ -140,6 +142,8 @@ export const ExamSimulator: React.FC<ExamSimulatorProps> = ({
       sound.playStreak();
     }
   };
+
+  finishExamRef.current = finishExam;
 
   const formatTimer = (secs: number) => {
     const m = Math.floor(secs / 60);

@@ -1,5 +1,5 @@
 // src/components/SpeedDrillModal.tsx
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { 
   Zap, 
   X, 
@@ -36,25 +36,41 @@ export const SpeedDrillModal: React.FC<SpeedDrillModalProps> = ({ isOpen, onClos
   const [totalAnswered, setTotalAnswered] = useState<number>(0);
   const [selectedSubject, setSelectedSubject] = useState<'all' | 'civics' | 'finance'>('all');
 
+  const endGame = useCallback(() => {
+    setGameState('gameover');
+    sound.playFanfare();
+    fireSchoolPrideConfetti();
+  }, []);
+
+  const endGameRef = useRef(endGame);
+  endGameRef.current = endGame;
+
+  // Reset state when modal is closed
+  useEffect(() => {
+    if (!isOpen) {
+      setGameState('intro');
+      setSecondsLeft(60);
+    }
+  }, [isOpen]);
+
   // Timer loop
   useEffect(() => {
-    let interval: any;
-    if (gameState === 'playing' && secondsLeft > 0) {
+    let interval: NodeJS.Timeout | null = null;
+    if (isOpen && gameState === 'playing' && secondsLeft > 0) {
       interval = setInterval(() => {
         setSecondsLeft((prev) => {
           if (prev <= 1) {
-            clearInterval(interval);
-            endGame();
+            endGameRef.current?.();
             return 0;
           }
           return prev - 1;
         });
       }, 1000);
     }
-    return () => clearInterval(interval);
-  }, [gameState, secondsLeft]);
-
-  if (!isOpen) return null;
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [isOpen, gameState, secondsLeft]);
 
   const startGame = () => {
     sound.playStreak();
@@ -106,11 +122,7 @@ export const SpeedDrillModal: React.FC<SpeedDrillModalProps> = ({ isOpen, onClos
     }
   };
 
-  const endGame = () => {
-    setGameState('gameover');
-    sound.playFanfare();
-    fireSchoolPrideConfetti();
-  };
+  if (!isOpen) return null;
 
   const currentQ = activeQuestions[currentIndex];
 
